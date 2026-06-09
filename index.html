@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Металлическая Студия — Рисование Линий</title>
+    <!-- Подключаем Tailwind CSS для современного и чистого UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: #0b0a0a;
+        }
+        
+        /* Шахматный фон для отображения прозрачных областей */
+        .checkerboard {
+            background-color: #0e0d0d;
+            background-image: 
+                linear-gradient(45deg, #141312 25%, transparent 25%, transparent 75%, #141312 75%, #141312), 
+                linear-gradient(45deg, #141312 25%, transparent 25%, transparent 75%, #141312 75%, #141312);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+
+        /* Стилизация скроллбара в стиле референсов */
+        .scrollbar-custom::-webkit-scrollbar {
+            width: 5px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb {
+            background: #2e2624;
+            border-radius: 10px;
+        }
+        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
+            background: #3e322f;
+        }
+
+        /* Кастомный стиль для бегунков Range input в теплых тонах */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: #231c1a;
+            height: 5px;
+            border-radius: 9999px;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #FF6C00;
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(255, 108, 0, 0.6);
+            transition: transform 0.15s, background 0.15s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+            background: #ff8533;
+        }
+    </style>
+    <!-- Библиотеки Three.js и OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body class="overflow-hidden h-screen w-screen text-[#E5DCD9] flex">
+
+    <!-- Левая панель управления в стилистике референсов -->
+    <div id="ui-panel" class="w-80 h-[96vh] my-[2vh] ml-4 bg-[#141211]/95 border border-[#2d2421] rounded-2xl flex flex-col z-20 backdrop-blur-2xl shrink-0 shadow-[0_15px_50px_-15px_rgba(0,0,0,0.9)]">
+        <!-- Заголовок -->
+        <div class="p-5 border-b border-[#2d2421]">
+            <h1 class="text-sm font-bold tracking-[0.1em] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#c5b9b6] uppercase flex items-center gap-2">
+                <span class="text-[#FF6C00] text-base">✦</span> 3D METAL BRUSH
+            </h1>
+            <p class="text-[10px] text-[#9E9490] mt-1 font-medium tracking-wide">Профессиональное рисование сглаженных линий</p>
+        </div>
+
+        <!-- Переключатель режимов (Рисование / 3D Осмотр) -->
+        <div class="px-5 pt-4">
+            <div class="flex bg-[#0b0a0a] p-1 rounded-xl border border-[#2d2421]">
+                <button id="mode-draw" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]">
+                    ✍ Рисование
+                </button>
+                <button id="mode-inspect" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all">
+                    🔍 Осмотр 3D
+                </button>
+            </div>
+        </div>
+
+        <!-- Настройки (Скроллируемый контейнер) -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 scrollbar-custom">
+            
+            <!-- ПАРАМЕТРЫ СГЛАЖИВАНИЯ И СТАБИЛИЗАЦИИ -->
+            <div id="section-draw" class="space-y-4">
+                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Сглаживание и объем</h3>
+                
+                <!-- Стабилизатор движения -->
+                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
+                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                        <span>Стабилизация кисти</span>
+                        <span id="val-stabilization" class="text-white font-semibold">80%</span>
+                    </label>
+                    <input type="range" id="stabilization" min="0" max="95" step="5" value="80" class="w-full">
+                    <p class="text-[9px] text-[#6d6360]">Устраняет дрожание рук, добавляя плавность.</p>
+                </div>
+
+                <!-- Субдивизия Чайкина -->
+                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
+                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                        <span>Скругление углов (Chaikin)</span>
+                        <span id="val-chaikin" class="text-white font-semibold">0 проходов</span>
+                    </label>
+                    <input type="range" id="chaikin" min="0" max="3" step="1" value="0" class="w-full">
+                    <p class="text-[9px] text-[#6d6360]">Срезает острые стыки, создавая мягкие дуги.</p>
+                </div>
+
+                <!-- Настройка Chaikin Ratio -->
+                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
+                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                        <span>Глубина среза углов</span>
+                        <span id="val-chaikinRatio" class="text-white font-semibold">45%</span>
+                    </label>
+                    <input type="range" id="chaikinRatio" min="5" max="45" step="5" value="45" class="w-full">
+                    <p class="text-[9px] text-[#6d6360]">Меньше % — лучше сохраняет исходную форму.</p>
+                </div>
+
+                <!-- Каллиграфическое сужение -->
+                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
+                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                        <span>Сужение концов (Перо)</span>
+                        <span id="val-taper" class="text-white font-semibold">0%</span>
+                    </label>
+                    <input type="range" id="taper" min="0" max="100" step="5" value="0" class="w-full">
+                    <p class="text-[9px] text-[#6d6360]">Сужает концы линии для каллиграфического эффекта.</p>
+                </div>
+
+                <!-- Разделение петель -->
+                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
+                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                        <span>Разделение петель (Z)</span>
+                        <span id="val-separation" class="text-white font-semibold">6.0</span>
+                    </label>
+                    <input type="range" id="separation" min="1.0" max="6.0" step="0.2" value="6.0" class="w-full">
+                </div>
+
+                <!-- Базовые слайдеры -->
+                <div class="space-y-3 pt-1">
+                    <div>
+                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                            <span>Математический Лаплас</span>
+                            <span id="val-smoothing" class="text-white font-semibold">50</span>
+                        </label>
+                        <input type="range" id="smoothing" min="0" max="50" step="1" value="50" class="w-full">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                            <span>Густота полигонов</span>
+                            <span id="val-density" class="text-white font-semibold">500</span>
+                        </label>
+                        <input type="range" id="density" min="100" max="500" step="25" value="500" class="w-full">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                            <span>Толщина линии</span>
+                            <span id="val-thickness" class="text-white font-semibold">0.2</span>
+                        </label>
+                        <input type="range" id="thickness" min="0.05" max="1.5" step="0.05" value="0.2" class="w-full">
+                    </div>
+                </div>
+            </div>
+
+            <!-- НАСТРОЙКИ МАТЕРИАЛА -->
+            <div class="border-t border-[#2d2421] pt-4 space-y-4">
+                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Материал Металла</h3>
+                
+                <div class="grid grid-cols-2 gap-2">
+                    <button id="preset-chrome" class="py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]">
+                        Зеркальный Хром
+                    </button>
+                    <button id="preset-satin" class="py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all">
+                        Матовый Сатин
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <div>
+                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                            <span>Шероховатость (Roughness)</span>
+                            <span id="val-roughness" class="text-white font-semibold">0.28</span>
+                        </label>
+                        <input type="range" id="roughness" min="0.0" max="0.8" step="0.01" value="0.28" class="w-full">
+                    </div>
+
+                    <div>
+                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                            <span>Микро-зернистость (Шум)</span>
+                            <span id="val-grain" class="text-white font-semibold">0.025</span>
+                        </label>
+                        <input type="range" id="grain" min="0.0" max="0.10" step="0.002" value="0.025" class="w-full">
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-[#9E9490] block mb-1 font-medium">Цвет металла</label>
+                        <div class="flex items-center gap-3">
+                            <input type="color" id="color" value="#e6e6e6" class="w-10 h-8 border border-[#2d2421] p-0 rounded-lg cursor-pointer bg-transparent">
+                            <span id="color-hex" class="text-xs font-semibold text-[#9E9490] uppercase tracking-wider">#e6e6e6</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Выбор прозрачного фона -->
+                <div class="flex items-center justify-between bg-[#141211] p-3 rounded-xl border border-[#2d2421]">
+                    <label for="transparent-bg" class="text-xs text-[#9E9490] cursor-pointer flex items-center gap-3 w-full">
+                        <input type="checkbox" id="transparent-bg" checked class="accent-[#FF6C00] w-4 h-4 rounded border-[#2d2421] bg-black">
+                        <span class="font-medium">Прозрачный фон (PNG)</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- ИНСТРУМЕНТЫ ЭКСПОРТА -->
+            <div class="border-t border-[#2d2421] pt-4 space-y-2">
+                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Экспорт проекта</h3>
+                <button id="export-png-btn" class="w-full bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white hover:brightness-110 font-bold py-2.5 rounded-xl transition-all shadow-[0_4px_16px_rgba(255,108,0,0.3)]">
+                    Скачать файл PNG
+                </button>
+            </div>
+        </div>
+
+        <!-- Кнопки очистки и сброса настроек -->
+        <div class="p-4 border-t border-[#2d2421] grid grid-cols-2 gap-2 bg-[#0d0c0c] rounded-b-2xl">
+            <button id="reset-settings-btn" class="bg-[#1f1a19] hover:bg-[#2b211e] text-[#9E9490] hover:text-white border border-[#3c2f2c] text-xs font-semibold py-2 rounded-xl transition-all">
+                Сбросить наст.
+            </button>
+            <button id="clear-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold py-2 rounded-xl transition-all">
+                Очистить сцену
+            </button>
+        </div>
+    </div>
+
+    <!-- Область 3D-сцены и холста -->
+    <div id="canvas-container" class="flex-1 h-full relative overflow-hidden">
+        <div id="viewport" class="w-full h-full checkerboard"></div>
+        <canvas id="drawing-overlay" class="absolute top-0 left-0 w-full h-full z-10 cursor-crosshair"></canvas>
+        
+        <!-- Подсказка-индикатор -->
+        <div class="absolute bottom-5 right-5 bg-[#141211]/80 backdrop-blur-md border border-[#2d2421] px-4 py-2.5 rounded-xl z-20 text-xs text-[#9E9490] pointer-events-none shadow-lg">
+            <span id="view-mode-indicator" class="font-medium">✏️ Нарисуйте линию на экране</span>
+        </div>
+    </div>
+
+    <!-- Всплывающее уведомление (Toast) -->
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300">
+        Успешно сохранено
+    </div>
+
+    <script>
+        let scene, camera, renderer, controls, currentLineMeshes = [];
+        let material, envMap, grainyTexture;
+        let drawingCanvas, ctxDrawing;
+        let raycaster, mousePosition;
+        let isDrawing = false;
+        let currentPathPoints = [];
+        let activeTubeMesh = null;
+        let clock;
+        
+        // Хранилище сырых точек для динамического обновления геометрий
+        let drawnLines = []; // Массив объектов { rawPoints: THREE.Vector3[], mesh: THREE.Mesh }
+        
+        // Переменные для стабилизации мыши (Lazy Brush / Exponential Smoothing)
+        let lastMouseX = null;
+        let lastMouseY = null;
+        
+        let activeMorphs = [];
+        let currentMode = 'draw'; // 'draw', 'inspect'
+
+        // Инициализация при запуске
+        init();
+        animate();
+
+        function init() {
+            clock = new THREE.Clock();
+
+            const viewport = document.getElementById('viewport');
+            scene = new THREE.Scene();
+
+            // 1. Камера
+            camera = new THREE.PerspectiveCamera(40, viewport.clientWidth / viewport.clientHeight, 0.1, 1000);
+            camera.position.set(0, 0, 30);
+
+            // 2. Рендерер (preserveDrawingBuffer для корректного экспорта снимков WebGL)
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+            renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+            viewport.appendChild(renderer.domElement);
+
+            // 3. Освещение студии (создает контрастные сатиновые блики)
+            const ambientLight = new THREE.AmbientLight(0x222222);
+            scene.add(ambientLight);
+
+            const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            keyLight.position.set(-15, 20, 15);
+            scene.add(keyLight);
+
+            const fillLight = new THREE.DirectionalLight(0xddeeff, 1.2);
+            fillLight.position.set(15, -10, 10);
+            scene.add(fillLight);
+
+            const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            rimLight.position.set(0, 5, -15);
+            scene.add(rimLight);
+
+            // 4. 2D overlay холст для рисования
+            drawingCanvas = document.getElementById('drawing-overlay');
+            ctxDrawing = drawingCanvas.getContext('2d');
+            resizeDrawingCanvas();
+
+            // Привязываем OrbitControls прямо к верхнему холсту (drawingCanvas).
+            controls = new THREE.OrbitControls(camera, drawingCanvas);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.enabled = false;
+
+            // 5. Карта отражений софтбоксов
+            envMap = createStudioEnvironmentMap();
+            scene.environment = envMap;
+
+            // 6. Микро-текстура шлифованного металла
+            grainyTexture = createGrainyMetalTexture();
+
+            // 7. Основной PBR материал (сразу инициализируется со свойствами Сатина по умолчанию)
+            material = new THREE.MeshStandardMaterial({
+                color: 0xe6e6e6,
+                metalness: 1.0,
+                roughness: 0.28,  // Свойства сатина
+                envMap: envMap,
+                envMapIntensity: 3.2,
+                bumpMap: grainyTexture,
+                bumpScale: 0.025, // Свойства сатина
+                flatShading: false
+            });
+
+            raycaster = new THREE.Raycaster();
+            mousePosition = new THREE.Vector2();
+
+            window.addEventListener('resize', onWindowResize);
+            setupDrawingHandlers();
+            setupUIHandlers();
+            
+            // Синхронизируем отображение всех текстовых меток со стартовыми значениями
+            updateUIOutputLabels();
+        }
+
+        // Генератор софтбоксов для красивых хромированных отражений
+        function createStudioEnvironmentMap() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            ctx.fillStyle = '#060608';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Основной левый софтбокс
+            let grad1 = ctx.createLinearGradient(120, 0, 380, 0);
+            grad1.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            grad1.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+            grad1.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad1;
+            ctx.fillRect(120, 0, 260, canvas.height);
+
+            // Правый узкий софтбокс
+            let grad2 = ctx.createLinearGradient(680, 0, 820, 0);
+            grad2.addColorStop(0, 'rgba(255, 255, 255, 0)');
+            grad2.addColorStop(0.5, 'rgba(230, 245, 255, 0.95)');
+            grad2.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad2;
+            ctx.fillRect(680, 0, 140, canvas.height);
+
+            // Upper softbox
+            let grad3 = ctx.createLinearGradient(0, 20, 0, 180);
+            grad3.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+            grad3.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            ctx.fillStyle = grad3;
+            ctx.fillRect(0, 0, canvas.width, 200);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.mapping = THREE.EquirectangularReflectionMapping;
+            return texture;
+        }
+
+        // Процедурный генератор зернистости сатина
+        function createGrainyMetalTexture() {
+            const canvas = document.createElement('canvas');
+            const size = 128;
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const imgData = ctx.createImageData(size, size);
+
+            for (let i = 0; i < imgData.data.length; i += 4) {
+                const noise = 128 + Math.floor((Math.random() - 0.5) * 45);
+                imgData.data[i] = noise;
+                imgData.data[i + 1] = noise;
+                imgData.data[i + 2] = noise;
+                imgData.data[i + 3] = 255;
+            }
+            ctx.putImageData(imgData, 0, 0);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(128, 128);
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
+            return texture;
+        }
+
+        // 3D-реконструкция сплайна с разведением витков на перекрестках
+        function rebuildPathWith3DDepth(points) {
+            const n = points.length;
+            if (n < 4) return points;
+
+            // 1. Сглаживание точек алгоритмом Лапласа
+            const smoothPasses = parseInt(document.getElementById('smoothing').value);
+            const flatPoints = smoothPoints(points, smoothPasses);
+            
+            // 2. Дополнительное органическое скругление Чайкиным (Chaikin's Corner Cutting)
+            const chaikinPasses = parseInt(document.getElementById('chaikin').value);
+            const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
+            const subdividedPoints = subdivideChaikin(flatPoints, chaikinPasses, chaikinRatio);
+
+            const targetPoints = subdividedPoints.map(p => p.clone());
+            const count = targetPoints.length;
+
+            // Создаем плавную базовую волну по глубине
+            for (let i = 0; i < count; i++) {
+                const progress = i / (count - 1);
+                targetPoints[i].z = Math.sin(progress * Math.PI * 3) * 1.0;
+            }
+
+            // Сканируем перекрестки и смещаем витки на нужную высоту
+            const thickness = parseFloat(document.getElementById('thickness').value);
+            const sepFactor = parseFloat(document.getElementById('separation').value);
+            const offsetHeight = thickness * sepFactor * 2.2;
+            const influenceWidth = Math.max(16, Math.floor(count * 0.05));
+
+            for (let i = 0; i < count - 1; i++) {
+                for (let j = i + 16; j < count - 1; j++) {
+                    const intersect = checkIntersection2D(subdividedPoints[i], subdividedPoints[i + 1], subdividedPoints[j], subdividedPoints[j + 1]);
+                    if (intersect) {
+                        for (let k = 0; k < count; k++) {
+                            const distA = Math.abs(k - i);
+                            if (distA < influenceWidth * 2) {
+                                targetPoints[k].z -= (offsetHeight * 0.5) * Math.exp(-Math.pow(distA, 2) / (2 * Math.pow(influenceWidth, 2)));
+                            }
+                            const distB = Math.abs(k - j);
+                            if (distB < influenceWidth * 2) {
+                                targetPoints[k].z += (offsetHeight * 0.5) * Math.exp(-Math.pow(distB, 2) / (2 * Math.pow(influenceWidth, 2)));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Итоговое пространственное сглаживание во избежание угловатостей
+            return smoothPoints(targetPoints, Math.max(2, smoothPasses));
+        }
+
+        // Алгоритм субдивизии Чайкина для срезания острых углов с настраиваемым коэффициентом ratio
+        function subdivideChaikin(points, passes, ratio = 0.25) {
+            if (passes === 0 || points.length < 3) return points;
+            
+            let current = points.map(p => p.clone());
+            const qWeight0 = 1 - ratio;
+            const qWeight1 = ratio;
+
+            for (let pass = 0; pass < passes; pass++) {
+                const next = [current[0].clone()];
+                for (let i = 0; i < current.length - 1; i++) {
+                    const p0 = current[i];
+                    const p1 = current[i + 1];
+                    
+                    // Вычисляем новые точки с настраиваемым коэффициентом среза
+                    const q = new THREE.Vector3().addScaledVector(p0, qWeight0).addScaledVector(p1, qWeight1);
+                    const r = new THREE.Vector3().addScaledVector(p0, qWeight1).addScaledVector(p1, qWeight0);
+                    next.push(q, r);
+                }
+                next.push(current[current.length - 1].clone());
+                current = next;
+            }
+            return current;
+        }
+
+        // Метод каллиграфического сужения концов линии (Tapering)
+        function applyTaperToGeometry(geometry, curve, tubularSegments, radialSegments) {
+            const posAttr = geometry.attributes.position;
+            const points = curve.getPoints(tubularSegments);
+            const taperAmt = parseFloat(document.getElementById('taper').value) / 100; // 0.0 - 1.0
+
+            for (let i = 0; i < posAttr.count; i++) {
+                const radialIdx = i % (radialSegments + 1);
+                const tubularIdx = Math.floor(i / (radialSegments + 1));
+                
+                const u = tubularIdx / tubularSegments;
+                
+                // Каллиграфическая кривая сужения (сужается на краях 0 и 1)
+                const taper = 1.0 - (1.0 - Math.min(1.0, Math.sin(u * Math.PI) * 1.8)) * taperAmt;
+
+                const centerPoint = points[tubularIdx];
+                if (!centerPoint) continue;
+
+                const vx = posAttr.getX(i) - centerPoint.x;
+                const vy = posAttr.getY(i) - centerPoint.y;
+                const vz = posAttr.getZ(i) - centerPoint.z;
+
+                posAttr.setXYZ(
+                    i,
+                    centerPoint.x + vx * taper,
+                    centerPoint.y + vy * taper,
+                    centerPoint.z + vz * taper
+                );
+            }
+            posAttr.needsUpdate = true;
+            geometry.computeVertexNormals();
+        }
+
+        // Построение и деформация геометрии трубы по заданным точкам
+        function generateTubeGeometry(curve, density, thickness) {
+            const radialSegments = 64;
+            const geom = new THREE.TubeGeometry(curve, density, thickness, radialSegments, false);
+            applyTaperToGeometry(geom, curve, density, radialSegments);
+            return geom;
+        }
+
+        function setupDrawingHandlers() {
+            drawingCanvas.addEventListener('mousedown', startDrawing);
+            drawingCanvas.addEventListener('mousemove', draw);
+            window.addEventListener('mouseup', stopDrawing);
+            drawingCanvas.addEventListener('mouseleave', stopDrawing);
+            window.addEventListener('blur', stopDrawing);
+
+            drawingCanvas.addEventListener('touchstart', (e) => {
+                if (currentMode !== 'draw') return;
+                if (e.touches.length > 0) startDrawing(e.touches[0]);
+            }, { passive: true });
+            drawingCanvas.addEventListener('touchmove', (e) => {
+                if (currentMode !== 'draw') return;
+                if (e.touches.length > 0) draw(e.touches[0]);
+            }, { passive: true });
+            window.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(event) {
+            if (currentMode !== 'draw') return;
+            isDrawing = true;
+            currentPathPoints = [];
+            activeTubeMesh = null;
+            
+            // Инициализация координат стабилизатора
+            lastMouseX = event.clientX;
+            lastMouseY = event.clientY;
+
+            const firstPoint = get3DPointFromEvent(event);
+            if (firstPoint) currentPathPoints.push(firstPoint);
+        }
+
+        function draw(event) {
+            if (!isDrawing || currentMode !== 'draw') return;
+
+            // Коэффициент стабилизации (EMA Filter)
+            const stabVal = parseInt(document.getElementById('stabilization').value) / 100; // 0.0 - 0.95
+            const k = 1 - stabVal; // Коэффициент жесткости следования
+
+            // Сглаживаем экранные координаты движения перед проекцией в 3D
+            const targetX = event.clientX;
+            const targetY = event.clientY;
+
+            if (lastMouseX === null || lastMouseY === null) {
+                lastMouseX = targetX;
+                lastMouseY = targetY;
+            } else {
+                lastMouseX = lastMouseX * (1 - k) + targetX * k;
+                lastMouseY = lastMouseY * (1 - k) + targetY * k;
+            }
+
+            // Создаем виртуальное событие со сглаженными экранными координатами
+            const smoothedEvent = {
+                clientX: lastMouseX,
+                clientY: lastMouseY
+            };
+
+            const nextPoint = get3DPointFromEvent(smoothedEvent);
+            if (!nextPoint) return;
+
+            const lastPoint = currentPathPoints[currentPathPoints.length - 1];
+            if (nextPoint.distanceTo(lastPoint) > 0.05) {
+                currentPathPoints.push(nextPoint);
+                updateFlatLineRealtime();
+            }
+        }
+
+        function updateFlatLineRealtime() {
+            if (currentPathPoints.length < 2) return;
+
+            // 1. Предварительное легкое сглаживание
+            const smoothPasses = Math.min(2, parseInt(document.getElementById('smoothing').value));
+            const smoothedRaw = smoothPoints(currentPathPoints, smoothPasses);
+            if (smoothedRaw.length < 2) return;
+
+            // 2. Срез углов Чайкиным на лету (только 1 проход для плавности интерактивного рендера)
+            const chaikinPasses = Math.min(1, parseInt(document.getElementById('chaikin').value));
+            const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
+            const preSubdivided = subdivideChaikin(smoothedRaw, chaikinPasses, chaikinRatio);
+
+            // Центрипетальный сплайн предотвращает резкие петли и заломы
+            const curve = new THREE.CatmullRomCurve3(preSubdivided, false, 'centripetal');
+            const thickness = parseFloat(document.getElementById('thickness').value);
+            const baseDensity = parseInt(document.getElementById('density').value);
+
+            // Адаптируем плотность полигонов под длину кривой
+            const curveLength = curve.getLength();
+            const segmentsCount = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
+
+            // Равномерно распределяем полигоны по кривой
+            const spacedPoints = curve.getSpacedPoints(segmentsCount);
+            const smoothCurve = new THREE.CatmullRomCurve3(spacedPoints, false, 'centripetal');
+
+            const geometry = generateTubeGeometry(smoothCurve, segmentsCount, thickness);
+
+            if (activeTubeMesh) {
+                activeTubeMesh.geometry.dispose();
+                activeTubeMesh.geometry = geometry;
+            } else {
+                activeTubeMesh = new THREE.Mesh(geometry, material);
+                scene.add(activeTubeMesh);
+            }
+        }
+
+        // Обновление всех существующих линий в реальном времени при изменении слайдеров
+        function updateAllLineGeometries() {
+            drawnLines.forEach(line => {
+                const isMorphing = activeMorphs.some(m => m.mesh === line.mesh);
+                if (isMorphing) return;
+
+                if (!line.mesh || !line.mesh.geometry) return;
+
+                const targetPoints = rebuildPathWith3DDepth(line.rawPoints);
+                if (targetPoints.length < 4) return;
+
+                const chaikinPasses = parseInt(document.getElementById('chaikin').value);
+                const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
+                const subdivided = subdivideChaikin(targetPoints, chaikinPasses, chaikinRatio);
+
+                const curve = new THREE.CatmullRomCurve3(subdivided, false, 'centripetal');
+                const thickness = parseFloat(document.getElementById('thickness').value);
+                const baseDensity = parseInt(document.getElementById('density').value);
+                
+                const curveLength = curve.getLength();
+                const density = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
+
+                line.mesh.geometry.dispose();
+                line.mesh.geometry = generateTubeGeometry(curve, density, thickness);
+            });
+
+            // Обновляем также целевые точки для тех линий, которые все еще плавно гнутся в анимации
+            activeMorphs.forEach(morph => {
+                if (morph.rawPoints) {
+                    morph.endPoints = rebuildPathWith3DDepth(morph.rawPoints);
+                    const smoothPasses = parseInt(document.getElementById('smoothing').value);
+                    morph.startPoints = smoothPoints(morph.rawPoints, smoothPasses);
+                }
+            });
+        }
+
+        function stopDrawing() {
+            if (!isDrawing) return;
+            isDrawing = false;
+            
+            lastMouseX = null;
+            lastMouseY = null;
+
+            if (currentPathPoints.length >= 4 && activeTubeMesh) {
+                showToast("⚡ Ультра-разглаживание...");
+
+                const smoothPasses = parseInt(document.getElementById('smoothing').value);
+                const flatPoints = smoothPoints(currentPathPoints, smoothPasses);
+                const targetPoints = rebuildPathWith3DDepth(currentPathPoints);
+
+                if (targetPoints.length >= 4) {
+                    // Сохраняем и исходные сырые точки, и сам меш для последующих модификаций
+                    drawnLines.push({
+                        rawPoints: [...currentPathPoints],
+                        mesh: activeTubeMesh
+                    });
+
+                    startMorphTransition(activeTubeMesh, flatPoints, targetPoints, [...currentPathPoints]);
+                    currentLineMeshes.push(activeTubeMesh);
+                    activeTubeMesh = null;
+                } else {
+                    scene.remove(activeTubeMesh);
+                    activeTubeMesh.geometry.dispose();
+                    activeTubeMesh = null;
+                }
+            } else if (activeTubeMesh) {
+                scene.remove(activeTubeMesh);
+                activeTubeMesh.geometry.dispose();
+                activeTubeMesh = null;
+            }
+            currentPathPoints = [];
+        }
+
+        function startMorphTransition(mesh, startPts, endPts, rawPoints) {
+            activeMorphs.push({
+                mesh: mesh,
+                startPoints: startPts,
+                endPoints: endPts,
+                rawPoints: rawPoints, // сохраняем исходные координаты
+                progress: 0,
+                duration: 1.0,
+                easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
+            });
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            
+            const btnDraw = document.getElementById('mode-draw');
+            const btnInspect = document.getElementById('mode-inspect');
+
+            if (mode === 'draw') {
+                btnDraw.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]";
+                btnInspect.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all";
+                
+                drawingCanvas.style.cursor = 'crosshair';
+                controls.enabled = false;
+                document.getElementById('view-mode-indicator').innerText = "✏️ Нарисуйте линию на экране";
+                smoothResetCamera();
+            } else {
+                btnDraw.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all";
+                btnInspect.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]";
+                
+                drawingCanvas.style.cursor = 'grab';
+                controls.enabled = true; // Активируем управление камерой
+                document.getElementById('view-mode-indicator').innerText = "🔍 Осмотр 3D: Вращайте фигуру мышью";
+            }
+        }
+
+        // Обновление всех текстовых меток у ползунков
+        function updateUIOutputLabels() {
+            const sliders = ['thickness', 'roughness', 'grain', 'smoothing', 'separation', 'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper'];
+            sliders.forEach(id => {
+                const el = document.getElementById(id);
+                const val = document.getElementById(`val-${id}`);
+                if (!el || !val) return;
+
+                let suffix = '';
+                if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper') suffix = '%';
+                if (id === 'chaikin') {
+                    const v = el.value;
+                    let passWord = ' проходов';
+                    if (v === '1') passWord = ' проход';
+                    else if (v === '2' || v === '3') passWord = ' прохода';
+                    val.innerText = v + passWord;
+                } else {
+                    val.innerText = el.value + suffix;
+                }
+            });
+        }
+
+        function setupUIHandlers() {
+            document.getElementById('mode-draw').addEventListener('click', () => setMode('draw'));
+            document.getElementById('mode-inspect').addEventListener('click', () => setMode('inspect'));
+
+            const inputs = ['thickness', 'roughness', 'grain', 'smoothing', 'separation', 'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                const val = document.getElementById(`val-${id}`);
+                el.addEventListener('input', (e) => {
+                    let suffix = '';
+                    if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper') suffix = '%';
+                    if (id === 'chaikin') {
+                        const passWord = e.target.value === '1' ? 'проход' : 'прохода';
+                        if (e.target.value === '0') suffix = ' проходов';
+                        else suffix = ` ${passWord}`;
+                    }
+                    val.innerText = e.target.value + suffix;
+                    
+                    if (id === 'roughness') material.roughness = parseFloat(e.target.value);
+                    if (id === 'grain') material.bumpScale = parseFloat(e.target.value);
+
+                    // Если изменен геометрический ползунок — мгновенно перестраиваем все существующие линии!
+                    if (['thickness', 'smoothing', 'separation', 'density', 'chaikin', 'chaikinRatio', 'taper'].includes(id)) {
+                        updateAllLineGeometries();
+                    }
+                });
+            });
+
+            const colorPicker = document.getElementById('color');
+            colorPicker.addEventListener('input', (e) => {
+                document.getElementById('color-hex').innerText = e.target.value;
+                material.color.set(e.target.value);
+            });
+
+            const bgToggle = document.getElementById('transparent-bg');
+            const viewEl = document.getElementById('viewport');
+            const updateBg = () => {
+                if (bgToggle.checked) {
+                    scene.background = null;
+                    viewEl.classList.add('checkerboard');
+                } else {
+                    scene.background = new THREE.Color(0x080808);
+                    viewEl.classList.remove('checkerboard');
+                }
+            };
+            bgToggle.addEventListener('change', updateBg);
+            updateBg();
+
+            // Кнопка Очистки Сцены
+            document.getElementById('clear-btn').addEventListener('click', () => {
+                currentLineMeshes.forEach(m => { scene.remove(m); m.geometry.dispose(); });
+                currentLineMeshes = [];
+                drawnLines = []; // Также очищаем массив хранения сырых траекторий
+                activeMorphs = [];
+                isDrawing = false;
+                currentPathPoints = [];
+                if (activeTubeMesh) {
+                    scene.remove(activeTubeMesh);
+                    activeTubeMesh.geometry.dispose();
+                    activeTubeMesh = null;
+                }
+                showToast("🗑️ Сцена очищена");
+            });
+
+            // Кнопка Сброса настроек до новых дефолтных
+            document.getElementById('reset-settings-btn').addEventListener('click', () => {
+                document.getElementById('stabilization').value = 80;
+                document.getElementById('chaikin').value = 0;
+                document.getElementById('chaikinRatio').value = 45;
+                document.getElementById('taper').value = 0;
+                document.getElementById('separation').value = 6.0;
+                document.getElementById('smoothing').value = 50; 
+                document.getElementById('density').value = 500;
+                document.getElementById('thickness').value = 0.2; // Обновлено до 0.2
+                
+                // Перевод на дефолтный сатин
+                document.getElementById('roughness').value = 0.28;
+                document.getElementById('grain').value = 0.025;
+                document.getElementById('color').value = "#e6e6e6";
+                document.getElementById('color-hex').innerText = "#e6e6e6";
+                
+                material.color.set("#e6e6e6");
+                material.roughness = 0.28;
+                material.bumpScale = 0.025;
+                
+                // Стилизация активной кнопки пресета
+                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
+                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+
+                updateBg();
+                updateUIOutputLabels();
+                updateAllLineGeometries();
+                showToast("🔄 Настройки сброшены");
+            });
+
+            // Скачать файл PNG
+            document.getElementById('export-png-btn').addEventListener('click', () => {
+                if (currentLineMeshes.length === 0) { showToast("⚠️ Сцена пуста!"); return; }
+                renderer.render(scene, camera);
+                const data = renderer.domElement.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = 'metallic-render.png';
+                link.href = data;
+                link.click();
+                showToast("🖼 PNG успешно сохранен");
+            });
+
+            // Пресеты
+            document.getElementById('preset-chrome').addEventListener('click', () => {
+                document.getElementById('roughness').value = 0.04;
+                document.getElementById('val-roughness').innerText = "0.04";
+                material.roughness = 0.04;
+                document.getElementById('grain').value = 0.002;
+                document.getElementById('val-grain').innerText = "0.002";
+                material.bumpScale = 0.002;
+
+                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
+                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+            });
+            
+            document.getElementById('preset-satin').addEventListener('click', () => {
+                document.getElementById('roughness').value = 0.28;
+                document.getElementById('val-roughness').innerText = "0.28";
+                material.roughness = 0.28;
+                document.getElementById('grain').value = 0.025;
+                document.getElementById('val-grain').innerText = "0.025";
+                material.bumpScale = 0.025;
+
+                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
+                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+            });
+        }
+
+        function smoothResetCamera() {
+            camera.position.set(0, 0, 30);
+            controls.target.set(0, 0, 0);
+            controls.update();
+        }
+
+        function resizeDrawingCanvas() {
+            drawingCanvas.width = drawingCanvas.clientWidth;
+            drawingCanvas.height = drawingCanvas.clientHeight;
+        }
+
+        function onWindowResize() {
+            const viewport = document.getElementById('viewport');
+            camera.aspect = viewport.clientWidth / viewport.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(viewport.clientWidth, viewport.clientHeight);
+            resizeDrawingCanvas();
+        }
+
+        function showToast(m) {
+            const toast = document.getElementById('toast');
+            toast.innerText = m;
+            toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-100 translate-y-0 transition-all duration-300";
+            setTimeout(() => {
+                toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300";
+            }, 2500);
+        }
+
+        function smoothPoints(pts, passes) {
+            if (pts.length < 3 || passes === 0) return pts;
+            let smoothed = pts.map(p => p.clone());
+            for (let pass = 0; pass < passes; pass++) {
+                const next = [smoothed[0].clone()];
+                for (let i = 1; i < smoothed.length - 1; i++) {
+                    next.push(new THREE.Vector3(
+                        smoothed[i-1].x * 0.25 + smoothed[i].x * 0.5 + smoothed[i+1].x * 0.25,
+                        smoothed[i-1].y * 0.25 + smoothed[i].y * 0.5 + smoothed[i+1].y * 0.25,
+                        smoothed[i-1].z * 0.25 + smoothed[i].z * 0.5 + smoothed[i+1].z * 0.25
+                    ));
+                }
+                next.push(smoothed[smoothed.length-1].clone());
+                smoothed = next;
+            }
+            return smoothed;
+        }
+
+        function checkIntersection2D(p1, p2, p3, p4) {
+            const d = (p4.y-p3.y)*(p2.x-p1.x) - (p4.x-p3.x)*(p2.y-p1.y);
+            if (d === 0) return null;
+            const ua = ((p4.x-p3.x)*(p1.y-p3.y) - (p4.y-p3.y)*(p1.x-p3.x)) / d;
+            const ub = ((p2.x-p1.x)*(p1.y-p3.y) - (p2.y-p1.y)*(p1.x-p3.x)) / d;
+            if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+                return new THREE.Vector2(p1.x + ua*(p2.x-p1.x), p1.y + ua*(p2.y-p1.y));
+            }
+            return null;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = clock.getDelta();
+
+            for (let i = activeMorphs.length - 1; i >= 0; i--) {
+                const m = activeMorphs[i];
+                m.progress += dt / m.duration;
+                if (m.progress >= 1.0) m.progress = 1.0;
+
+                const eased = m.easing(m.progress);
+                const cur = [];
+                for (let k = 0; k < m.startPoints.length; k++) {
+                    cur.push(new THREE.Vector3().lerpVectors(m.startPoints[k], m.endPoints[k], eased));
+                }
+
+                const chaikinPasses = parseInt(document.getElementById('chaikin').value);
+                const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
+                const subdivided = subdivideChaikin(cur, chaikinPasses, chaikinRatio);
+
+                const curve = new THREE.CatmullRomCurve3(subdivided, false, 'centripetal');
+                const thickness = parseFloat(document.getElementById('thickness').value);
+                const baseDensity = parseInt(document.getElementById('density').value);
+                
+                const curveLength = curve.getLength();
+                const density = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
+
+                m.mesh.geometry.dispose();
+                m.mesh.geometry = generateTubeGeometry(curve, density, thickness);
+
+                if (m.progress >= 1.0) activeMorphs.splice(i, 1);
+            }
+
+            if (controls.enabled) {
+                controls.update();
+                // Меняем состояние курсора при активном перетаскивании сцены
+                if (controls.state === -1) {
+                    drawingCanvas.style.cursor = 'grab';
+                } else {
+                    drawingCanvas.style.cursor = 'grabbing';
+                }
+            }
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
