@@ -7,233 +7,249 @@
     <!-- Подключаем Tailwind CSS для современного и чистого UI -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-        
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            background-color: #0b0a0a;
+            background-color: #080808;
         }
-        
-        /* Шахматный фон для отображения прозрачных областей */
+        /* Шахматный фон для отображения прозрачных областей --> шоколадный оттенок */
         .checkerboard {
-            background-color: #0e0d0d;
+            background-color: #110d0a;
             background-image: 
-                linear-gradient(45deg, #141312 25%, transparent 25%, transparent 75%, #141312 75%, #141312), 
-                linear-gradient(45deg, #141312 25%, transparent 25%, transparent 75%, #141312 75%, #141312);
+                linear-gradient(45deg, #17120e 25%, transparent 25%, transparent 75%, #17120e 75%, #17120e), 
+                linear-gradient(45deg, #17120e 25%, transparent 25%, transparent 75%, #17120e 75%, #17120e);
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
         }
-
-        /* Стилизация скроллбара в стиле референсов */
-        .scrollbar-custom::-webkit-scrollbar {
-            width: 5px;
+        /* Стилизация скроллбара */
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
         }
-        .scrollbar-custom::-webkit-scrollbar-thumb {
-            background: #2e2624;
-            border-radius: 10px;
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: rgba(251, 146, 60, 0.15);
+            border-radius: 2px;
         }
-        .scrollbar-custom::-webkit-scrollbar-thumb:hover {
-            background: #3e322f;
-        }
-
-        /* Кастомный стиль для бегунков Range input в теплых тонах */
-        input[type="range"] {
-            -webkit-appearance: none;
-            appearance: none;
-            background: #231c1a;
-            height: 5px;
-            border-radius: 9999px;
-            outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #FF6C00;
-            cursor: pointer;
-            box-shadow: 0 0 8px rgba(255, 108, 0, 0.6);
-            transition: transform 0.15s, background 0.15s;
-        }
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.25);
-            background: #ff8533;
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: rgba(251, 146, 60, 0.3);
         }
     </style>
     <!-- Библиотеки Three.js и OrbitControls -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
-<body class="overflow-hidden h-screen w-screen text-[#E5DCD9] flex">
+<body class="overflow-hidden h-screen w-screen text-stone-200 flex">
 
-    <!-- Левая панель управления в стилистике референсов -->
-    <div id="ui-panel" class="w-80 h-[96vh] my-[2vh] ml-4 bg-[#141211]/95 border border-[#2d2421] rounded-2xl flex flex-col z-20 backdrop-blur-2xl shrink-0 shadow-[0_15px_50px_-15px_rgba(0,0,0,0.9)]">
+    <!-- Левая панель управления -->
+    <div id="ui-panel" class="w-80 h-full bg-stone-900/95 border-r border-stone-800 flex flex-col z-20 backdrop-blur-xl shrink-0">
         <!-- Заголовок -->
-        <div class="p-5 border-b border-[#2d2421]">
-            <h1 class="text-sm font-bold tracking-[0.1em] text-transparent bg-clip-text bg-gradient-to-r from-white to-[#c5b9b6] uppercase flex items-center gap-2">
-                <span class="text-[#FF6C00] text-base">✦</span> 3D METAL BRUSH
+        <div class="p-5 border-b border-stone-800">
+            <h1 class="text-lg font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-stone-100 to-orange-400 flex items-center gap-2">
+                <span>⚙️</span> 3D METAL BRUSH
             </h1>
-            <p class="text-[10px] text-[#9E9490] mt-1 font-medium tracking-wide">Профессиональное рисование сглаженных линий</p>
+            <p class="text-xs text-stone-500 mt-1">Профессиональное рисование линий с ультра-сглаживанием</p>
         </div>
 
         <!-- Переключатель режимов (Рисование / 3D Осмотр) -->
         <div class="px-5 pt-4">
-            <div class="flex bg-[#0b0a0a] p-1 rounded-xl border border-[#2d2421]">
-                <button id="mode-draw" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]">
+            <div class="flex bg-stone-950 p-1 rounded-lg border border-stone-800">
+                <button id="mode-draw" class="flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950">
                     ✍ Рисование
                 </button>
-                <button id="mode-inspect" class="flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all">
+                <button id="mode-inspect" class="flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all">
                     🔍 Осмотр 3D
                 </button>
             </div>
         </div>
 
         <!-- Настройки (Скроллируемый контейнер) -->
-        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 scrollbar-custom">
+        <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 scrollbar-thin">
             
             <!-- ПАРАМЕТРЫ СГЛАЖИВАНИЯ И СТАБИЛИЗАЦИИ -->
             <div id="section-draw" class="space-y-4">
-                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Сглаживание и объем</h3>
+                <h3 class="text-orange-400 text-[10px] font-bold tracking-wider uppercase mb-1">Ультра-сглаживание</h3>
                 
-                <!-- Стабилизатор движения -->
-                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
-                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
-                        <span>Стабилизация кисти</span>
-                        <span id="val-stabilization" class="text-white font-semibold">80%</span>
+                <!-- Стабилизатор движения (EMA Filter) -->
+                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
+                    <label class="flex justify-between text-xs text-stone-400">
+                        <span>Стабилизация кисти (Lazy)</span>
+                        <span id="val-stabilization">80%</span>
                     </label>
-                    <input type="range" id="stabilization" min="0" max="95" step="5" value="80" class="w-full">
-                    <p class="text-[9px] text-[#6d6360]">Устраняет дрожание рук, добавляя плавность.</p>
+                    <input type="range" id="stabilization" min="0" max="95" step="5" value="80" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    <p class="text-[9px] text-stone-600">Устраняет дрожание рук, добавляя контролируемую плавность.</p>
                 </div>
 
                 <!-- Субдивизия Чайкина -->
-                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
-                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
+                    <label class="flex justify-between text-xs text-stone-400">
                         <span>Скругление углов (Chaikin)</span>
-                        <span id="val-chaikin" class="text-white font-semibold">0 проходов</span>
+                        <span id="val-chaikin">0 проходов</span>
                     </label>
-                    <input type="range" id="chaikin" min="0" max="3" step="1" value="0" class="w-full">
-                    <p class="text-[9px] text-[#6d6360]">Срезает острые стыки, создавая мягкие дуги.</p>
+                    <input type="range" id="chaikin" min="0" max="3" step="1" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    <p class="text-[9px] text-stone-600">Срезает острые стыки, переводя ломаные линии в мягкие дуги.</p>
                 </div>
 
-                <!-- Настройка Chaikin Ratio -->
-                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
-                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                <!-- Настройка Chaikin Ratio (Глубина среза) -->
+                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
+                    <label class="flex justify-between text-xs text-stone-400">
                         <span>Глубина среза углов</span>
-                        <span id="val-chaikinRatio" class="text-white font-semibold">45%</span>
+                        <span id="val-chaikinRatio">45%</span>
                     </label>
-                    <input type="range" id="chaikinRatio" min="5" max="45" step="5" value="45" class="w-full">
-                    <p class="text-[9px] text-[#6d6360]">Меньше % — лучше сохраняет исходную форму.</p>
+                    <input type="range" id="chaikinRatio" min="5" max="45" step="5" value="45" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    <p class="text-[9px] text-stone-600">Меньше % — лучше сохраняет исходную форму и масштаб петель.</p>
                 </div>
 
                 <!-- Каллиграфическое сужение -->
-                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
-                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                <div class="bg-orange-950/20 border border-orange-900/20 rounded-lg p-3 space-y-1">
+                    <label class="flex justify-between text-[11px] text-orange-400 font-semibold uppercase tracking-wider">
                         <span>Сужение концов (Перо)</span>
-                        <span id="val-taper" class="text-white font-semibold">0%</span>
+                        <span id="val-taper">0%</span>
                     </label>
-                    <input type="range" id="taper" min="0" max="100" step="5" value="0" class="w-full">
-                    <p class="text-[9px] text-[#6d6360]">Сужает концы линии для каллиграфического эффекта.</p>
+                    <input type="range" id="taper" min="0" max="100" step="5" value="0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                    <p class="text-[9px] text-stone-500 mt-1">Имитирует силу давления пера художественной кисти на концах.</p>
                 </div>
 
-                <!-- Разделение петель -->
-                <div class="bg-[#181615] p-3.5 rounded-xl border border-[#2d2421] space-y-1">
-                    <label class="flex justify-between text-xs text-[#9E9490] font-medium">
+                <div class="bg-orange-950/20 border border-orange-900/20 rounded-lg p-3">
+                    <label class="flex justify-between text-[11px] text-orange-400 font-semibold uppercase tracking-wider mb-2">
                         <span>Разделение петель (Z)</span>
-                        <span id="val-separation" class="text-white font-semibold">6.0</span>
+                        <span id="val-separation">6.0</span>
                     </label>
-                    <input type="range" id="separation" min="1.0" max="6.0" step="0.2" value="6.0" class="w-full">
+                    <input type="range" id="separation" min="1.0" max="6.0" step="0.2" value="6.0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                 </div>
 
-                <!-- Базовые слайдеры -->
                 <div class="space-y-3 pt-1">
                     <div>
-                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                        <label class="flex justify-between text-xs text-stone-400 mb-1">
                             <span>Математический Лаплас</span>
-                            <span id="val-smoothing" class="text-white font-semibold">50</span>
+                            <span id="val-smoothing">50</span>
                         </label>
-                        <input type="range" id="smoothing" min="0" max="50" step="1" value="50" class="w-full">
+                        <input type="range" id="smoothing" min="0" max="50" step="1" value="50" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                     </div>
                     <div>
-                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
-                            <span>Густота полигонов</span>
-                            <span id="val-density" class="text-white font-semibold">500</span>
+                        <label class="flex justify-between text-xs text-stone-400 mb-1">
+                            <span>Базовая густота полигонов</span>
+                            <span id="val-density">500</span>
                         </label>
-                        <input type="range" id="density" min="100" max="500" step="25" value="500" class="w-full">
+                        <input type="range" id="density" min="100" max="500" step="25" value="500" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                     </div>
                     <div>
-                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
+                        <label class="flex justify-between text-xs text-stone-400 mb-1">
                             <span>Толщина линии</span>
-                            <span id="val-thickness" class="text-white font-semibold">0.2</span>
+                            <span id="val-thickness">0.2</span>
                         </label>
-                        <input type="range" id="thickness" min="0.05" max="1.5" step="0.05" value="0.2" class="w-full">
+                        <!-- Изменили значение по умолчанию на 0.2 по запросу -->
+                        <input type="range" id="thickness" min="0.1" max="1.5" step="0.05" value="0.2" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                     </div>
                 </div>
             </div>
 
-            <!-- НАСТРОЙКИ МАТЕРИАЛА -->
-            <div class="border-t border-[#2d2421] pt-4 space-y-4">
-                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Материал Металла</h3>
+            <!-- ФОНОВЫЙ РЕФЕРЕНС (ОБВОДКА) -->
+            <div class="border-t border-stone-800 pt-4 space-y-4">
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Фоновый референс</h3>
+                <div class="flex gap-2">
+                    <button id="upload-bg-btn" class="flex-1 py-2 text-xs font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 hover:text-white transition-all text-stone-300">
+                        🖼️ Загрузить картинку
+                    </button>
+                    <button id="remove-bg-btn" class="px-3 py-2 text-xs font-semibold bg-red-950 text-red-400 border border-red-900/40 rounded hover:bg-red-900/30 transition-all hidden">
+                        🗑️
+                    </button>
+                </div>
+                <input type="file" id="bg-file-input" accept="image/*" class="hidden">
+                
+                <div id="bg-controls" class="space-y-3 hidden bg-stone-950 p-3 rounded-lg border border-stone-800/80">
+                    <div>
+                        <label class="flex justify-between text-xs text-stone-400 mb-1">
+                            <span>Прозрачность референса</span>
+                            <span id="val-bg-opacity">50%</span>
+                        </label>
+                        <input type="range" id="bg-opacity" min="10" max="100" step="5" value="50" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    </div>
+                    <div>
+                        <label class="flex justify-between text-xs text-stone-400 mb-1">
+                            <span>Масштаб картинки</span>
+                            <span id="val-bg-scale">1.0x</span>
+                        </label>
+                        <input type="range" id="bg-scale" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <div>
+                            <label class="flex justify-between text-xs text-stone-400 mb-1">
+                                <span>Сдвиг X</span>
+                                <span id="val-bg-offset-x">0</span>
+                            </label>
+                            <input type="range" id="bg-offset-x" min="-20" max="20" step="0.5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                        </div>
+                        <div>
+                            <label class="flex justify-between text-xs text-stone-400 mb-1">
+                                <span>Сдвиг Y</span>
+                                <span id="val-bg-offset-y">0</span>
+                            </label>
+                            <input type="range" id="bg-offset-y" min="-20" max="20" step="0.5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- НАСТРОЙКИ МАТЕРИАЛА И БЛИКОВ -->
+            <div class="border-t border-stone-800 pt-4 space-y-4">
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Материал Металла</h3>
                 
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="preset-chrome" class="py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]">
+                    <button id="preset-chrome" class="py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300">
                         Зеркальный Хром
                     </button>
-                    <button id="preset-satin" class="py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all">
+                    <button id="preset-satin" class="py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10">
                         Матовый Сатин
                     </button>
                 </div>
 
-                <div class="space-y-3">
-                    <div>
-                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
-                            <span>Шероховатость (Roughness)</span>
-                            <span id="val-roughness" class="text-white font-semibold">0.28</span>
-                        </label>
-                        <input type="range" id="roughness" min="0.0" max="0.8" step="0.01" value="0.28" class="w-full">
-                    </div>
+                <div>
+                    <label class="flex justify-between text-xs text-stone-400 mb-1">
+                        <span>Шероховатость (Roughness)</span>
+                        <span id="val-roughness">0.28</span>
+                    </label>
+                    <input type="range" id="roughness" min="0.0" max="0.8" step="0.01" value="0.28" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                </div>
 
-                    <div>
-                        <label class="flex justify-between text-xs text-[#9E9490] mb-1 font-medium">
-                            <span>Микро-зернистость (Шум)</span>
-                            <span id="val-grain" class="text-white font-semibold">0.025</span>
-                        </label>
-                        <input type="range" id="grain" min="0.0" max="0.10" step="0.002" value="0.025" class="w-full">
-                    </div>
+                <div>
+                    <label class="flex justify-between text-xs text-stone-400 mb-1">
+                        <span>Микро-зернистость (Шум)</span>
+                        <span id="val-grain">0.025</span>
+                    </label>
+                    <input type="range" id="grain" min="0.0" max="0.10" step="0.002" value="0.025" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                </div>
 
-                    <div>
-                        <label class="text-xs text-[#9E9490] block mb-1 font-medium">Цвет металла</label>
-                        <div class="flex items-center gap-3">
-                            <input type="color" id="color" value="#e6e6e6" class="w-10 h-8 border border-[#2d2421] p-0 rounded-lg cursor-pointer bg-transparent">
-                            <span id="color-hex" class="text-xs font-semibold text-[#9E9490] uppercase tracking-wider">#e6e6e6</span>
-                        </div>
+                <div>
+                    <label class="text-xs text-stone-400 block mb-1">Цвет металла</label>
+                    <div class="flex items-center gap-2">
+                        <input type="color" id="color" value="#e6e6e6" class="w-10 h-8 border-0 p-0 rounded cursor-pointer bg-transparent">
+                        <span id="color-hex" class="text-xs text-stone-500 uppercase">#e6e6e6</span>
                     </div>
                 </div>
 
                 <!-- Выбор прозрачного фона -->
-                <div class="flex items-center justify-between bg-[#141211] p-3 rounded-xl border border-[#2d2421]">
-                    <label for="transparent-bg" class="text-xs text-[#9E9490] cursor-pointer flex items-center gap-3 w-full">
-                        <input type="checkbox" id="transparent-bg" checked class="accent-[#FF6C00] w-4 h-4 rounded border-[#2d2421] bg-black">
-                        <span class="font-medium">Прозрачный фон (PNG)</span>
+                <div class="flex items-center justify-between bg-stone-950 p-2.5 rounded-lg border border-stone-800/80">
+                    <label for="transparent-bg" class="text-xs text-stone-400 cursor-pointer flex items-center gap-2">
+                        <input type="checkbox" id="transparent-bg" checked class="accent-orange-500 w-4 h-4 rounded">
+                        <span>Прозрачный фон (PNG)</span>
                     </label>
                 </div>
             </div>
 
             <!-- ИНСТРУМЕНТЫ ЭКСПОРТА -->
-            <div class="border-t border-[#2d2421] pt-4 space-y-2">
-                <h3 class="text-[#FF6C00] text-[10px] font-bold tracking-widest uppercase mb-1">Экспорт проекта</h3>
-                <button id="export-png-btn" class="w-full bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white hover:brightness-110 font-bold py-2.5 rounded-xl transition-all shadow-[0_4px_16px_rgba(255,108,0,0.3)]">
-                    Скачать файл PNG
+            <div class="border-t border-stone-800 pt-4 space-y-2">
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Экспорт проекта</h3>
+                <!-- Убрана кнопка Figma по запросу. Оставлена только стильная оранжевая градиентная кнопка PNG -->
+                <button id="export-png-btn" class="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-stone-950 font-bold py-2.5 rounded-lg transition-all shadow-md shadow-orange-600/10 text-xs flex items-center justify-center gap-1.5">
+                    📥 Скачать файл PNG
                 </button>
             </div>
         </div>
 
         <!-- Кнопки очистки и сброса настроек -->
-        <div class="p-4 border-t border-[#2d2421] grid grid-cols-2 gap-2 bg-[#0d0c0c] rounded-b-2xl">
-            <button id="reset-settings-btn" class="bg-[#1f1a19] hover:bg-[#2b211e] text-[#9E9490] hover:text-white border border-[#3c2f2c] text-xs font-semibold py-2 rounded-xl transition-all">
+        <div class="p-4 border-t border-stone-800 grid grid-cols-2 gap-2">
+            <button id="reset-settings-btn" class="bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-semibold py-2 rounded-lg transition-all">
                 Сбросить наст.
             </button>
-            <button id="clear-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold py-2 rounded-xl transition-all">
+            <button id="clear-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold py-2 rounded-lg transition-all">
                 Очистить сцену
             </button>
         </div>
@@ -245,13 +261,13 @@
         <canvas id="drawing-overlay" class="absolute top-0 left-0 w-full h-full z-10 cursor-crosshair"></canvas>
         
         <!-- Подсказка-индикатор -->
-        <div class="absolute bottom-5 right-5 bg-[#141211]/80 backdrop-blur-md border border-[#2d2421] px-4 py-2.5 rounded-xl z-20 text-xs text-[#9E9490] pointer-events-none shadow-lg">
-            <span id="view-mode-indicator" class="font-medium">✏️ Нарисуйте линию на экране</span>
+        <div class="absolute bottom-5 right-5 bg-stone-900/80 backdrop-blur-md border border-stone-800/80 px-4 py-2.5 rounded-xl z-20 text-xs text-stone-400 pointer-events-none">
+            <span id="view-mode-indicator">✏️ Нарисуйте линию на экране</span>
         </div>
     </div>
 
     <!-- Всплывающее уведомление (Toast) -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300">
+    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-500 text-stone-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-orange-500/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300">
         Успешно сохранено
     </div>
 
@@ -264,6 +280,9 @@
         let currentPathPoints = [];
         let activeTubeMesh = null;
         let clock;
+        
+        // Хранилище для фонового референса
+        let bgMesh = null, bgTexture = null;
         
         // Хранилище сырых точек для динамического обновления геометрий
         let drawnLines = []; // Массив объектов { rawPoints: THREE.Vector3[], mesh: THREE.Mesh }
@@ -419,6 +438,27 @@
             return texture;
         }
 
+        // Проекция 2D-координат в 3D с валидацией выхода за экран
+        function get3DPointFromEvent(event) {
+            const rect = drawingCanvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            mousePosition.x = (x / drawingCanvas.width) * 2 - 1;
+            mousePosition.y = -(y / drawingCanvas.height) * 2 + 1;
+
+            raycaster.setFromCamera(mousePosition, camera);
+            if (Math.abs(raycaster.ray.direction.z) < 0.0001) return null;
+
+            const distance = -raycaster.ray.origin.z / raycaster.ray.direction.z;
+            if (isNaN(distance) || !isFinite(distance)) return null;
+
+            const point = raycaster.ray.at(distance);
+            if (isNaN(point.x) || isNaN(point.y) || isNaN(point.z)) return null;
+
+            return point;
+        }
+
         // 3D-реконструкция сплайна с разведением витков на перекрестках
         function rebuildPathWith3DDepth(points) {
             const n = points.length;
@@ -466,7 +506,7 @@
                 }
             }
 
-            // Итоговое пространственное сглаживание во избежание угловатостей
+            // Итоговое пространственное сглаживание во избежамости угловатостей
             return smoothPoints(targetPoints, Math.max(2, smoothPasses));
         }
 
@@ -676,6 +716,19 @@
             });
         }
 
+        // Метод динамического изменения положения и прозрачности фонового референса
+        function updateBgMeshTransform() {
+            if (!bgMesh) return;
+            const scaleVal = parseFloat(document.getElementById('bg-scale').value);
+            const offsetX = parseFloat(document.getElementById('bg-offset-x').value);
+            const offsetY = parseFloat(document.getElementById('bg-offset-y').value);
+            const opacityVal = parseFloat(document.getElementById('bg-opacity').value) / 100;
+            
+            bgMesh.scale.set(scaleVal, scaleVal, 1.0);
+            bgMesh.position.set(offsetX, offsetY, -4.5); // Зафиксирован надежно за областью рисования
+            bgMesh.material.opacity = opacityVal;
+        }
+
         function stopDrawing() {
             if (!isDrawing) return;
             isDrawing = false;
@@ -684,7 +737,7 @@
             lastMouseY = null;
 
             if (currentPathPoints.length >= 4 && activeTubeMesh) {
-                showToast("⚡ Ультра-разглаживание...");
+                showToast("⚡ Ультра-разглаживание и перенос в 3D...");
 
                 const smoothPasses = parseInt(document.getElementById('smoothing').value);
                 const flatPoints = smoothPoints(currentPathPoints, smoothPasses);
@@ -728,37 +781,39 @@
         function setMode(mode) {
             currentMode = mode;
             
-            const btnDraw = document.getElementById('mode-draw');
-            const btnInspect = document.getElementById('mode-inspect');
-
             if (mode === 'draw') {
-                btnDraw.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]";
-                btnInspect.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all";
-                
+                document.getElementById('mode-draw').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
+                document.getElementById('mode-inspect').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
                 drawingCanvas.style.cursor = 'crosshair';
                 controls.enabled = false;
-                document.getElementById('view-mode-indicator').innerText = "✏️ Нарисуйте линию на экране";
+                viewIndicator = document.getElementById('view-mode-indicator');
+                viewIndicator.innerText = "✏️ Нарисуйте линию на экране";
                 smoothResetCamera();
             } else {
-                btnDraw.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg text-[#9E9490] hover:text-white transition-all";
-                btnInspect.className = "flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all bg-gradient-to-r from-[#FF6C00] to-[#FF8A00] text-white shadow-[0_4px_12px_rgba(255,108,0,0.25)]";
-                
+                document.getElementById('mode-draw').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
+                document.getElementById('mode-inspect').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
                 drawingCanvas.style.cursor = 'grab';
                 controls.enabled = true; // Активируем управление камерой
-                document.getElementById('view-mode-indicator').innerText = "🔍 Осмотр 3D: Вращайте фигуру мышью";
+                viewIndicator = document.getElementById('view-mode-indicator');
+                viewIndicator.innerText = "🔍 Осмотр 3D: Вращайте фигуру мышью";
             }
         }
 
         // Обновление всех текстовых меток у ползунков
         function updateUIOutputLabels() {
-            const sliders = ['thickness', 'roughness', 'grain', 'smoothing', 'separation', 'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper'];
+            const sliders = [
+                'thickness', 'roughness', 'grain', 'smoothing', 'separation', 
+                'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper',
+                'bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'
+            ];
             sliders.forEach(id => {
                 const el = document.getElementById(id);
                 const val = document.getElementById(`val-${id}`);
                 if (!el || !val) return;
 
                 let suffix = '';
-                if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper') suffix = '%';
+                if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper' || id === 'bg-opacity') suffix = '%';
+                if (id === 'bg-scale') suffix = 'x';
                 if (id === 'chaikin') {
                     const v = el.value;
                     let passWord = ' проходов';
@@ -775,13 +830,18 @@
             document.getElementById('mode-draw').addEventListener('click', () => setMode('draw'));
             document.getElementById('mode-inspect').addEventListener('click', () => setMode('inspect'));
 
-            const inputs = ['thickness', 'roughness', 'grain', 'smoothing', 'separation', 'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper'];
+            const inputs = [
+                'thickness', 'roughness', 'grain', 'smoothing', 'separation', 
+                'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper',
+                'bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'
+            ];
             inputs.forEach(id => {
                 const el = document.getElementById(id);
                 const val = document.getElementById(`val-${id}`);
                 el.addEventListener('input', (e) => {
                     let suffix = '';
-                    if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper') suffix = '%';
+                    if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper' || id === 'bg-opacity') suffix = '%';
+                    if (id === 'bg-scale') suffix = 'x';
                     if (id === 'chaikin') {
                         const passWord = e.target.value === '1' ? 'проход' : 'прохода';
                         if (e.target.value === '0') suffix = ' проходов';
@@ -796,7 +856,77 @@
                     if (['thickness', 'smoothing', 'separation', 'density', 'chaikin', 'chaikinRatio', 'taper'].includes(id)) {
                         updateAllLineGeometries();
                     }
+
+                    // Если изменены параметры фоновой картинки
+                    if (['bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'].includes(id)) {
+                        updateBgMeshTransform();
+                    }
                 });
+            });
+
+            // Загрузка фонового референса
+            const bgFileInput = document.getElementById('bg-file-input');
+            const uploadBgBtn = document.getElementById('upload-bg-btn');
+            const removeBgBtn = document.getElementById('remove-bg-btn');
+            const bgControls = document.getElementById('bg-controls');
+            
+            uploadBgBtn.addEventListener('click', () => bgFileInput.click());
+            bgFileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const loader = new THREE.TextureLoader();
+                    loader.load(event.target.result, (texture) => {
+                        bgTexture = texture;
+                        // Настраиваем пропорции
+                        const aspect = texture.image.width / texture.image.height;
+                        const baseHeight = 15; // Дефолтная высота в 3D единицах
+                        const baseWidth = baseHeight * aspect;
+                        
+                        const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
+                        const bgMaterial = new THREE.MeshBasicMaterial({
+                            map: texture,
+                            transparent: true,
+                            opacity: parseFloat(document.getElementById('bg-opacity').value) / 100,
+                            depthWrite: false, // Чтобы не конфликтовать со шлангами, уходящими назад
+                            depthTest: true
+                        });
+                        
+                        if (bgMesh) {
+                            scene.remove(bgMesh);
+                            bgMesh.geometry.dispose();
+                            bgMesh.material.dispose();
+                        }
+                        
+                        bgMesh = new THREE.Mesh(geometry, bgMaterial);
+                        bgMesh.position.set(0, 0, -4.5);
+                        scene.add(bgMesh);
+                        
+                        // Показываем панель управления фоном
+                        removeBgBtn.classList.remove('hidden');
+                        bgControls.classList.remove('hidden');
+                        
+                        updateBgMeshTransform();
+                        showToast("🖼️ Референс успешно загружен");
+                    });
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Удаление фонового референса
+            removeBgBtn.addEventListener('click', () => {
+                if (bgMesh) {
+                    scene.remove(bgMesh);
+                    bgMesh.geometry.dispose();
+                    bgMesh.material.dispose();
+                    bgMesh = null;
+                    bgTexture = null;
+                }
+                bgFileInput.value = '';
+                removeBgBtn.classList.add('hidden');
+                bgControls.classList.add('hidden');
+                showToast("🗑️ Референс удален с фона");
             });
 
             const colorPicker = document.getElementById('color');
@@ -835,7 +965,7 @@
                 showToast("🗑️ Сцена очищена");
             });
 
-            // Кнопка Сброса настроек до новых дефолтных
+            // Кнопка Сброса настроек до дефолтных
             document.getElementById('reset-settings-btn').addEventListener('click', () => {
                 document.getElementById('stabilization').value = 80;
                 document.getElementById('chaikin').value = 0;
@@ -844,7 +974,13 @@
                 document.getElementById('separation').value = 6.0;
                 document.getElementById('smoothing').value = 50; 
                 document.getElementById('density').value = 500;
-                document.getElementById('thickness').value = 0.2; // Обновлено до 0.2
+                document.getElementById('thickness').value = 0.2; // Дефолт сброса теперь 0.2
+                
+                // Сброс параметров картинки на дефолты
+                document.getElementById('bg-opacity').value = 50;
+                document.getElementById('bg-scale').value = 1.0;
+                document.getElementById('bg-offset-x').value = 0;
+                document.getElementById('bg-offset-y').value = 0;
                 
                 // Перевод на дефолтный сатин
                 document.getElementById('roughness').value = 0.28;
@@ -856,21 +992,32 @@
                 material.roughness = 0.28;
                 material.bumpScale = 0.025;
                 
-                // Стилизация активной кнопки пресета
-                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
-                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+                // Стилизация активной кнопки пресета в оранжевом стиле
+                document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
+                document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
 
                 updateBg();
                 updateUIOutputLabels();
                 updateAllLineGeometries();
-                showToast("🔄 Настройки сброшены");
+                updateBgMeshTransform();
+                showToast("🔄 Настройки сброшены до дефолтов");
             });
 
-            // Скачать файл PNG
+            // Скачать файл PNG (с автоматическим скрытием референса)
             document.getElementById('export-png-btn').addEventListener('click', () => {
                 if (currentLineMeshes.length === 0) { showToast("⚠️ Сцена пуста!"); return; }
+                
+                // Прячем референс перед снимком
+                const wasBgVisible = bgMesh ? bgMesh.visible : false;
+                if (bgMesh) bgMesh.visible = false;
+
                 renderer.render(scene, camera);
                 const data = renderer.domElement.toDataURL('image/png');
+                
+                // Возвращаем видимость референса обратно
+                if (bgMesh) bgMesh.visible = wasBgVisible;
+                renderer.render(scene, camera);
+
                 const link = document.createElement('a');
                 link.download = 'metallic-render.png';
                 link.href = data;
@@ -887,8 +1034,8 @@
                 document.getElementById('val-grain').innerText = "0.002";
                 material.bumpScale = 0.002;
 
-                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
-                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+                document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
+                document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
             });
             
             document.getElementById('preset-satin').addEventListener('click', () => {
@@ -899,8 +1046,8 @@
                 document.getElementById('val-grain').innerText = "0.025";
                 material.bumpScale = 0.025;
 
-                document.getElementById('preset-satin').className = "py-2 text-xs font-semibold bg-[#2e1d17] text-[#ff8040] rounded-xl border border-[#ff6c00]/40 hover:bg-[#3d231b] transition-all";
-                document.getElementById('preset-chrome').className = "py-2 text-xs font-semibold bg-[#1a1715] rounded-xl border border-[#3e322f] hover:bg-[#282220] transition-all text-[#E5DCD9]";
+                document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
+                document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
             });
         }
 
@@ -926,9 +1073,9 @@
         function showToast(m) {
             const toast = document.getElementById('toast');
             toast.innerText = m;
-            toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-100 translate-y-0 transition-all duration-300";
+            toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-500 text-stone-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-orange-500/20 z-50 pointer-events-none opacity-100 translate-y-0 transition-all duration-300";
             setTimeout(() => {
-                toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#FF6C00] text-white font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-[#FF6C00]/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300";
+                toast.className = "fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-500 text-stone-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-orange-500/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300";
             }, 2500);
         }
 
