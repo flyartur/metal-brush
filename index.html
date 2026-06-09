@@ -36,7 +36,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
-<body class="overflow-hidden h-screen w-screen text-stone-200 flex">
+<body class="overflow-hidden h-screen w-screen text-slate-100 flex">
 
     <!-- Левая панель управления -->
     <div id="ui-panel" class="w-80 h-full bg-stone-900/95 border-r border-stone-800 flex flex-col z-20 backdrop-blur-xl shrink-0">
@@ -71,9 +71,9 @@
                 <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
                     <label class="flex justify-between text-xs text-stone-400">
                         <span>Стабилизация кисти (Lazy)</span>
-                        <span id="val-stabilization">80%</span>
+                        <span id="val-stabilization">0%</span>
                     </label>
-                    <input type="range" id="stabilization" min="0" max="95" step="5" value="80" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
+                    <input type="range" id="stabilization" min="0" max="95" step="5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
                     <p class="text-[9px] text-stone-600">Устраняет дрожание рук, добавляя контролируемую плавность.</p>
                 </div>
 
@@ -135,7 +135,6 @@
                             <span>Толщина линии</span>
                             <span id="val-thickness">0.2</span>
                         </label>
-                        <!-- Изменили значение по умолчанию на 0.2 по запросу -->
                         <input type="range" id="thickness" min="0.1" max="1.5" step="0.05" value="0.2" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                     </div>
                 </div>
@@ -193,7 +192,7 @@
                 <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Материал Металла</h3>
                 
                 <div class="grid grid-cols-2 gap-2">
-                    <button id="preset-chrome" class="py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300">
+                    <button id="preset-chrome" class="py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-neutral-300">
                         Зеркальный Хром
                     </button>
                     <button id="preset-satin" class="py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10">
@@ -229,7 +228,7 @@
                 <div class="flex items-center justify-between bg-stone-950 p-2.5 rounded-lg border border-stone-800/80">
                     <label for="transparent-bg" class="text-xs text-stone-400 cursor-pointer flex items-center gap-2">
                         <input type="checkbox" id="transparent-bg" checked class="accent-orange-500 w-4 h-4 rounded">
-                        <span>Прозрачный фон (PNG)</span>
+                        <span>Прозрачный ф|он (PNG)</span>
                     </label>
                 </div>
             </div>
@@ -237,7 +236,6 @@
             <!-- ИНСТРУМЕНТЫ ЭКСПОРТА -->
             <div class="border-t border-stone-800 pt-4 space-y-2">
                 <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Экспорт проекта</h3>
-                <!-- Убрана кнопка Figma по запросу. Оставлена только стильная оранжевая градиентная кнопка PNG -->
                 <button id="export-png-btn" class="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-stone-950 font-bold py-2.5 rounded-lg transition-all shadow-md shadow-orange-600/10 text-xs flex items-center justify-center gap-1.5">
                     📥 Скачать файл PNG
                 </button>
@@ -506,7 +504,7 @@
                 }
             }
 
-            // Итоговое пространственное сглаживание во избежамости угловатостей
+            // Итоговое пространственное сглаживание во избежание угловатостей
             return smoothPoints(targetPoints, Math.max(2, smoothPasses));
         }
 
@@ -967,14 +965,14 @@
 
             // Кнопка Сброса настроек до дефолтных
             document.getElementById('reset-settings-btn').addEventListener('click', () => {
-                document.getElementById('stabilization').value = 80;
+                document.getElementById('stabilization').value = 0; // Изменено на 0 по умолчанию
                 document.getElementById('chaikin').value = 0;
                 document.getElementById('chaikinRatio').value = 45;
                 document.getElementById('taper').value = 0;
                 document.getElementById('separation').value = 6.0;
                 document.getElementById('smoothing').value = 50; 
                 document.getElementById('density').value = 500;
-                document.getElementById('thickness').value = 0.2; // Дефолт сброса теперь 0.2
+                document.getElementById('thickness').value = 0.2; // Дефолт 0.2
                 
                 // Сброс параметров картинки на дефолты
                 document.getElementById('bg-opacity').value = 50;
