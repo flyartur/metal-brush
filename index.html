@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Металлическая Студия — Рисование Линий</title>
-    <!-- Подключаем Tailwind CSS для современного и чистого UI -->
+    <title>3D Metallic Studio — Line Drawing</title>
+    <!-- Importing Tailwind CSS for clean and modern UI -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background-color: #080808;
         }
-        /* Шахматный фон для отображения прозрачных областей --> шоколадный оттенок */
+        /* Chocolate-toned checkerboard background for transparent areas */
         .checkerboard {
             background-color: #110d0a;
             background-image: 
@@ -20,7 +20,7 @@
             background-size: 20px 20px;
             background-position: 0 0, 10px 10px;
         }
-        /* Стилизация скроллбара */
+        /* Custom thin scrollbar */
         .scrollbar-thin::-webkit-scrollbar {
             width: 4px;
         }
@@ -32,107 +32,73 @@
             background: rgba(251, 146, 60, 0.3);
         }
     </style>
-    <!-- Библиотеки Three.js и OrbitControls -->
+    <!-- Three.js and OrbitControls libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 </head>
 <body class="overflow-hidden h-screen w-screen text-slate-100 flex">
 
-    <!-- Левая панель управления -->
+    <!-- Left Sidebar Control Panel -->
     <div id="ui-panel" class="w-80 h-full bg-stone-900/95 border-r border-stone-800 flex flex-col z-20 backdrop-blur-xl shrink-0">
-        <!-- Заголовок -->
+        <!-- Header (3D METAL BRUSH replaced with clean LINE DRAWING, no gear emoji) -->
         <div class="p-5 border-b border-stone-800">
             <h1 class="text-lg font-bold tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-stone-100 to-orange-400 flex items-center gap-2">
-                <span>⚙️</span> 3D METAL BRUSH
+                LINE DRAWING
             </h1>
-            <p class="text-xs text-stone-500 mt-1">Профессиональное рисование линий с ультра-сглаживанием</p>
+            <p class="text-xs text-stone-500 mt-1">Professional line drawing with ultra-smoothing</p>
         </div>
 
-        <!-- Переключатель режимов (Рисование / 3D Осмотр) -->
+        <!-- Mode Toggle (Draw / Inspect) with outlined SVG icons -->
         <div class="px-5 pt-4">
             <div class="flex bg-stone-950 p-1 rounded-lg border border-stone-800">
-                <button id="mode-draw" class="flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950">
-                    ✍ Рисование
+                <button id="mode-draw" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950">
+                    <!-- Outlined Pen Icon -->
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                    Draw
                 </button>
-                <button id="mode-inspect" class="flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all">
-                    🔍 Осмотр 3D
+                <button id="mode-inspect" class="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all">
+                    <!-- Outlined Inspect/Search Icon -->
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.637 10.637z" />
+                    </svg>
+                    Inspect 3D
                 </button>
             </div>
         </div>
 
-        <!-- Настройки (Скроллируемый контейнер) -->
+        <!-- Scrollable Settings Container -->
         <div class="flex-1 overflow-y-auto px-5 py-4 space-y-5 scrollbar-thin">
             
-            <!-- ПАРАМЕТРЫ СГЛАЖИВАНИЯ И СТАБИЛИЗАЦИИ -->
+            <!-- ULTRA-SMOOTHING PARAMETERS -->
             <div id="section-draw" class="space-y-4">
-                <h3 class="text-orange-400 text-[10px] font-bold tracking-wider uppercase mb-1">Ультра-сглаживание</h3>
-                
-                <!-- Стабилизатор движения (EMA Filter) -->
-                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
-                    <label class="flex justify-between text-xs text-stone-400">
-                        <span>Стабилизация кисти (Lazy)</span>
-                        <span id="val-stabilization">0%</span>
-                    </label>
-                    <input type="range" id="stabilization" min="0" max="95" step="5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
-                    <p class="text-[9px] text-stone-600">Устраняет дрожание рук, добавляя контролируемую плавность.</p>
-                </div>
-
-                <!-- Субдивизия Чайкина -->
-                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
-                    <label class="flex justify-between text-xs text-stone-400">
-                        <span>Скругление углов (Chaikin)</span>
-                        <span id="val-chaikin">0 проходов</span>
-                    </label>
-                    <input type="range" id="chaikin" min="0" max="3" step="1" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
-                    <p class="text-[9px] text-stone-600">Срезает острые стыки, переводя ломаные линии в мягкие дуги.</p>
-                </div>
-
-                <!-- Настройка Chaikin Ratio (Глубина среза) -->
-                <div class="bg-stone-950 p-3 rounded-lg border border-stone-800/80 space-y-1">
-                    <label class="flex justify-between text-xs text-stone-400">
-                        <span>Глубина среза углов</span>
-                        <span id="val-chaikinRatio">45%</span>
-                    </label>
-                    <input type="range" id="chaikinRatio" min="5" max="45" step="5" value="45" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
-                    <p class="text-[9px] text-stone-600">Меньше % — лучше сохраняет исходную форму и масштаб петель.</p>
-                </div>
-
-                <!-- Каллиграфическое сужение -->
-                <div class="bg-orange-950/20 border border-orange-900/20 rounded-lg p-3 space-y-1">
-                    <label class="flex justify-between text-[11px] text-orange-400 font-semibold uppercase tracking-wider">
-                        <span>Сужение концов (Перо)</span>
-                        <span id="val-taper">0%</span>
-                    </label>
-                    <input type="range" id="taper" min="0" max="100" step="5" value="0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
-                    <p class="text-[9px] text-stone-500 mt-1">Имитирует силу давления пера художественной кисти на концах.</p>
-                </div>
+                <h3 class="text-orange-400 text-[10px] font-bold tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 21l8.982-8.982m-1.132-1.132L21 3l-5.093 5.093m0 0l-5.093 5.093M11 19h.008v.008H11V19zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375-3h.008v.008H11V16zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375-3h.008v.008H11V13zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375-3h.008v.008H11V10zm.375 0a.375 0 11-.75 0 .375 0 01.75 0zm-.375-3h.008v.008H11V7zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                    </svg>
+                    Ultra-Smoothing
+                </h3>
 
                 <div class="bg-orange-950/20 border border-orange-900/20 rounded-lg p-3">
                     <label class="flex justify-between text-[11px] text-orange-400 font-semibold uppercase tracking-wider mb-2">
-                        <span>Разделение петель (Z)</span>
-                        <span id="val-separation">6.0</span>
+                        <span>Loop Separation (Z)</span>
+                        <span id="val-separation">10.0</span>
                     </label>
-                    <input type="range" id="separation" min="1.0" max="6.0" step="0.2" value="6.0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                    <input type="range" id="separation" min="0.0" max="20.0" step="0.5" value="10.0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                 </div>
 
                 <div class="space-y-3 pt-1">
                     <div>
                         <label class="flex justify-between text-xs text-stone-400 mb-1">
-                            <span>Математический Лаплас</span>
+                            <span>Laplace Smoothing</span>
                             <span id="val-smoothing">50</span>
                         </label>
-                        <input type="range" id="smoothing" min="0" max="50" step="1" value="50" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                        <input type="range" id="smoothing" min="0" max="100" step="1" value="50" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                     </div>
                     <div>
                         <label class="flex justify-between text-xs text-stone-400 mb-1">
-                            <span>Базовая густота полигонов</span>
-                            <span id="val-density">500</span>
-                        </label>
-                        <input type="range" id="density" min="100" max="500" step="25" value="500" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
-                    </div>
-                    <div>
-                        <label class="flex justify-between text-xs text-stone-400 mb-1">
-                            <span>Толщина линии</span>
+                            <span>Line Thickness</span>
                             <span id="val-thickness">0.2</span>
                         </label>
                         <input type="range" id="thickness" min="0.1" max="1.5" step="0.05" value="0.2" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
@@ -140,15 +106,25 @@
                 </div>
             </div>
 
-            <!-- ФОНОВЫЙ РЕФЕРЕНС (ОБВОДКА) -->
+            <!-- BACKGROUND REFERENCE (IMAGE UNDERLAY) -->
             <div class="border-t border-stone-800 pt-4 space-y-4">
-                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Фоновый референс</h3>
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                    </svg>
+                    Background Reference
+                </h3>
                 <div class="flex gap-2">
-                    <button id="upload-bg-btn" class="flex-1 py-2 text-xs font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 hover:text-white transition-all text-stone-300">
-                        🖼️ Загрузить картинку
+                    <button id="upload-bg-btn" class="flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 hover:text-white transition-all text-stone-300">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375 0 11-.75 0 .375 0 01.75 0z" />
+                        </svg>
+                        Upload Image
                     </button>
                     <button id="remove-bg-btn" class="px-3 py-2 text-xs font-semibold bg-red-950 text-red-400 border border-red-900/40 rounded hover:bg-red-900/30 transition-all hidden">
-                        🗑️
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h14" />
+                        </svg>
                     </button>
                 </div>
                 <input type="file" id="bg-file-input" accept="image/*" class="hidden">
@@ -156,14 +132,14 @@
                 <div id="bg-controls" class="space-y-3 hidden bg-stone-950 p-3 rounded-lg border border-stone-800/80">
                     <div>
                         <label class="flex justify-between text-xs text-stone-400 mb-1">
-                            <span>Прозрачность референса</span>
+                            <span>Image Opacity</span>
                             <span id="val-bg-opacity">50%</span>
                         </label>
                         <input type="range" id="bg-opacity" min="10" max="100" step="5" value="50" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
                     </div>
                     <div>
                         <label class="flex justify-between text-xs text-stone-400 mb-1">
-                            <span>Масштаб картинки</span>
+                            <span>Image Scale</span>
                             <span id="val-bg-scale">1.0x</span>
                         </label>
                         <input type="range" id="bg-scale" min="0.2" max="3.0" step="0.1" value="1.0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
@@ -171,14 +147,14 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div>
                             <label class="flex justify-between text-xs text-stone-400 mb-1">
-                                <span>Сдвиг X</span>
+                                <span>Offset X</span>
                                 <span id="val-bg-offset-x">0</span>
                             </label>
                             <input type="range" id="bg-offset-x" min="-20" max="20" step="0.5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
                         </div>
                         <div>
                             <label class="flex justify-between text-xs text-stone-400 mb-1">
-                                <span>Сдвиг Y</span>
+                                <span>Offset Y</span>
                                 <span id="val-bg-offset-y">0</span>
                             </label>
                             <input type="range" id="bg-offset-y" min="-20" max="20" step="0.5" value="0" class="w-full accent-orange-500 bg-stone-800 h-1 rounded-lg appearance-none">
@@ -187,86 +163,123 @@
                 </div>
             </div>
 
-            <!-- НАСТРОЙКИ МАТЕРИАЛА И БЛИКОВ -->
+            <!-- STUDIO LIGHTS -->
             <div class="border-t border-stone-800 pt-4 space-y-4">
-                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Материал Металла</h3>
+                <h3 class="text-orange-400 text-xs font-bold tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                    </svg>
+                    Studio Lights
+                </h3>
+
+                <div>
+                    <label class="flex justify-between text-xs text-stone-400 mb-1">
+                        <span>Key Light Intensity</span>
+                        <span id="val-keyIntensity">2.0</span>
+                    </label>
+                    <input type="range" id="keyIntensity" min="0.0" max="5.0" step="0.1" value="2.0" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                </div>
+
+                <div>
+                    <label class="flex justify-between text-xs text-stone-400 mb-1">
+                        <span>Fill Light Intensity</span>
+                        <span id="val-fillIntensity">1.2</span>
+                    </label>
+                    <input type="range" id="fillIntensity" min="0.0" max="4.0" step="0.1" value="1.2" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
+                </div>
+            </div>
+
+            <!-- METAL MATERIAL PARAMETERS -->
+            <div class="border-t border-stone-800 pt-4 space-y-4">
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    </svg>
+                    Metal Material
+                </h3>
                 
                 <div class="grid grid-cols-2 gap-2">
                     <button id="preset-chrome" class="py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-neutral-300">
-                        Зеркальный Хром
+                        Mirror Chrome
                     </button>
                     <button id="preset-satin" class="py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10">
-                        Матовый Сатин
+                        Matte Satin
                     </button>
                 </div>
 
                 <div>
                     <label class="flex justify-between text-xs text-stone-400 mb-1">
-                        <span>Шероховатость (Roughness)</span>
+                        <span>Roughness</span>
                         <span id="val-roughness">0.28</span>
                     </label>
                     <input type="range" id="roughness" min="0.0" max="0.8" step="0.01" value="0.28" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
                 </div>
 
                 <div>
-                    <label class="flex justify-between text-xs text-stone-400 mb-1">
-                        <span>Микро-зернистость (Шум)</span>
-                        <span id="val-grain">0.025</span>
-                    </label>
-                    <input type="range" id="grain" min="0.0" max="0.10" step="0.002" value="0.025" class="w-full accent-orange-500 h-1 bg-stone-800 rounded-lg appearance-none">
-                </div>
-
-                <div>
-                    <label class="text-xs text-stone-400 block mb-1">Цвет металла</label>
+                    <label class="text-xs text-stone-400 block mb-1">Metal Color</label>
                     <div class="flex items-center gap-2">
                         <input type="color" id="color" value="#e6e6e6" class="w-10 h-8 border-0 p-0 rounded cursor-pointer bg-transparent">
                         <span id="color-hex" class="text-xs text-stone-500 uppercase">#e6e6e6</span>
                     </div>
                 </div>
 
-                <!-- Выбор прозрачного фона -->
+                <!-- Transparent Background Selector -->
                 <div class="flex items-center justify-between bg-stone-950 p-2.5 rounded-lg border border-stone-800/80">
                     <label for="transparent-bg" class="text-xs text-stone-400 cursor-pointer flex items-center gap-2">
                         <input type="checkbox" id="transparent-bg" checked class="accent-orange-500 w-4 h-4 rounded">
-                        <span>Прозрачный ф|он (PNG)</span>
+                        <span>Transparent Background (PNG)</span>
                     </label>
                 </div>
             </div>
 
-            <!-- ИНСТРУМЕНТЫ ЭКСПОРТА -->
+            <!-- EXPORT OPTIONS -->
             <div class="border-t border-stone-800 pt-4 space-y-2">
-                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1">Экспорт проекта</h3>
+                <h3 class="text-stone-400 text-xs font-bold tracking-wider uppercase mb-1 flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Export Project
+                </h3>
                 <button id="export-png-btn" class="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-stone-950 font-bold py-2.5 rounded-lg transition-all shadow-md shadow-orange-600/10 text-xs flex items-center justify-center gap-1.5">
-                    📥 Скачать файл PNG
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                    </svg>
+                    Download PNG (4x Ultra Quality)
                 </button>
             </div>
         </div>
 
-        <!-- Кнопки очистки и сброса настроек -->
+        <!-- Reset & Clear scene actions -->
         <div class="p-4 border-t border-stone-800 grid grid-cols-2 gap-2">
-            <button id="reset-settings-btn" class="bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-semibold py-2 rounded-lg transition-all">
-                Сбросить наст.
+            <button id="reset-settings-btn" class="flex items-center justify-center gap-1 bg-stone-800 hover:bg-stone-700 text-stone-300 border border-stone-700 text-xs font-semibold py-2 rounded-lg transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                </svg>
+                Reset Settings
             </button>
-            <button id="clear-btn" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold py-2 rounded-lg transition-all">
-                Очистить сцену
+            <button id="clear-btn" class="flex items-center justify-center gap-1 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold py-2 rounded-lg transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Clear Scene
             </button>
         </div>
     </div>
 
-    <!-- Область 3D-сцены и холста -->
+    <!-- WebGL viewport & drawing overlay canvas -->
     <div id="canvas-container" class="flex-1 h-full relative overflow-hidden">
         <div id="viewport" class="w-full h-full checkerboard"></div>
         <canvas id="drawing-overlay" class="absolute top-0 left-0 w-full h-full z-10 cursor-crosshair"></canvas>
         
-        <!-- Подсказка-индикатор -->
+        <!-- Viewport mode helper toast -->
         <div class="absolute bottom-5 right-5 bg-stone-900/80 backdrop-blur-md border border-stone-800/80 px-4 py-2.5 rounded-xl z-20 text-xs text-stone-400 pointer-events-none">
-            <span id="view-mode-indicator">✏️ Нарисуйте линию на экране</span>
+            <span id="view-mode-indicator">Draw a line on the screen</span>
         </div>
     </div>
 
-    <!-- Всплывающее уведомление (Toast) -->
+    <!-- UI Toast notification element -->
     <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-orange-500 text-stone-950 font-bold px-6 py-2.5 rounded-full text-xs shadow-lg shadow-orange-500/20 z-50 pointer-events-none opacity-0 translate-y-10 transition-all duration-300">
-        Успешно сохранено
+        Saved successfully
     </div>
 
     <script>
@@ -279,20 +292,23 @@
         let activeTubeMesh = null;
         let clock;
         
-        // Хранилище для фонового референса
+        // Studio lights
+        let ambientLight, keyLight, fillLight;
+        
+        // Background reference storage
         let bgMesh = null, bgTexture = null;
         
-        // Хранилище сырых точек для динамического обновления геометрий
-        let drawnLines = []; // Массив объектов { rawPoints: THREE.Vector3[], mesh: THREE.Mesh }
+        // Raw line data arrays for dynamically updating geometry
+        let drawnLines = []; // [{ rawPoints: THREE.Vector3[], mesh: THREE.Mesh }]
         
-        // Переменные для стабилизации мыши (Lazy Brush / Exponential Smoothing)
+        // Stabilizer coordinates placeholders
         let lastMouseX = null;
         let lastMouseY = null;
         
         let activeMorphs = [];
-        let currentMode = 'draw'; // 'draw', 'inspect'
+        let currentMode = 'draw'; // 'draw' or 'inspect'
 
-        // Инициализация при запуске
+        // Initialize on start
         init();
         animate();
 
@@ -302,11 +318,11 @@
             const viewport = document.getElementById('viewport');
             scene = new THREE.Scene();
 
-            // 1. Камера
+            // 1. Camera setup
             camera = new THREE.PerspectiveCamera(40, viewport.clientWidth / viewport.clientHeight, 0.1, 1000);
             camera.position.set(0, 0, 30);
 
-            // 2. Рендерер (preserveDrawingBuffer для корректного экспорта снимков WebGL)
+            // 2. Renderer setup with preservation for export
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
             renderer.setSize(viewport.clientWidth, viewport.clientHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -314,51 +330,76 @@
             renderer.toneMappingExposure = 1.0;
             viewport.appendChild(renderer.domElement);
 
-            // 3. Освещение студии (создает контрастные сатиновые блики)
-            const ambientLight = new THREE.AmbientLight(0x222222);
+            // 3. Studio lights setup
+            // Ambient intensity fixed to 0.13 as requested
+            ambientLight = new THREE.AmbientLight(0xffffff, 0.13);
             scene.add(ambientLight);
 
-            const keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
+            keyLight = new THREE.DirectionalLight(0xffffff, 2.0);
             keyLight.position.set(-15, 20, 15);
             scene.add(keyLight);
 
-            const fillLight = new THREE.DirectionalLight(0xddeeff, 1.2);
+            fillLight = new THREE.DirectionalLight(0xddeeff, 1.2);
             fillLight.position.set(15, -10, 10);
             scene.add(fillLight);
 
-            const rimLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            rimLight.position.set(0, 5, -15);
-            scene.add(rimLight);
-
-            // 4. 2D overlay холст для рисования
+            // 4. 2D Drawing Overlay Canvas setup
             drawingCanvas = document.getElementById('drawing-overlay');
             ctxDrawing = drawingCanvas.getContext('2d');
             resizeDrawingCanvas();
 
-            // Привязываем OrbitControls прямо к верхнему холсту (drawingCanvas).
+            // Setup OrbitControls bound to the drawing canvas
             controls = new THREE.OrbitControls(camera, drawingCanvas);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
             controls.enabled = false;
 
-            // 5. Карта отражений софтбоксов
+            // 5. Environmental Reflection Map (Softboxes)
             envMap = createStudioEnvironmentMap();
             scene.environment = envMap;
 
-            // 6. Микро-текстура шлифованного металла
+            // 6. Brushed satin metal micro-texture
             grainyTexture = createGrainyMetalTexture();
 
-            // 7. Основной PBR материал (сразу инициализируется со свойствами Сатина по умолчанию)
+            // 7. Base PBR material with default Satin values and custom edge shadow injection
             material = new THREE.MeshStandardMaterial({
                 color: 0xe6e6e6,
                 metalness: 1.0,
-                roughness: 0.28,  // Свойства сатина
+                roughness: 0.28,
                 envMap: envMap,
-                envMapIntensity: 3.2,
+                envMapIntensity: 2.0,
                 bumpMap: grainyTexture,
-                bumpScale: 0.025, // Свойства сатина
+                bumpScale: 0.004, // Reduced default from 0.025 to 0.004 for a much smoother, polished surface
                 flatShading: false
             });
+
+            material.onBeforeCompile = function (shader) {
+                // Replace the dithering code block with our custom edge-shadow calculation logic with verified settings from Снимок экрана — 2026-06-17 в 16.09.01.png
+                shader.fragmentShader = shader.fragmentShader.replace(
+                    '#include <dithering_fragment>',
+                    `#include <dithering_fragment>
+                     vec3 normalVec = normalize(vNormal);
+                     vec3 viewVec = normalize(vViewPosition);
+                     float dotNV = clamp(abs(dot(normalVec, viewVec)), 0.0, 1.0);
+                     
+                     // Verified default edge shadow parameters from Снимок экрана — 2026-06-17 в 16.09.01.png
+                     float edgeShadowWidth = 0.8;
+                     float edgeShadowIntensity = 1.0;
+                     float edgeShadowSharpness = 1.0;
+                     
+                     // 1. Calculate the initial smoothstep based on Shadow Width
+                     float edgeDarken = smoothstep(0.0, edgeShadowWidth, dotNV);
+                     
+                     // 2. Apply Shadow Sharpness (as an exponential curve)
+                     edgeDarken = pow(edgeDarken, edgeShadowSharpness);
+                     
+                     // 3. Interpolate between full color (1.0) and shaded color based on Shadow Intensity
+                     float mixFactor = mix(1.0, edgeDarken, edgeShadowIntensity);
+                     
+                     gl_FragColor.rgb *= mixFactor;
+                    `
+                );
+            };
 
             raycaster = new THREE.Raycaster();
             mousePosition = new THREE.Vector2();
@@ -367,11 +408,11 @@
             setupDrawingHandlers();
             setupUIHandlers();
             
-            // Синхронизируем отображение всех текстовых меток со стартовыми значениями
+            // Sync all numeric UI labels
             updateUIOutputLabels();
         }
 
-        // Генератор софтбоксов для красивых хромированных отражений
+        // Procedural softbox light map generator
         function createStudioEnvironmentMap() {
             const canvas = document.createElement('canvas');
             canvas.width = 1024;
@@ -381,7 +422,7 @@
             ctx.fillStyle = '#060608';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Основной левый софтбокс
+            // Left key softbox
             let grad1 = ctx.createLinearGradient(120, 0, 380, 0);
             grad1.addColorStop(0, 'rgba(255, 255, 255, 0)');
             grad1.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
@@ -389,7 +430,7 @@
             ctx.fillStyle = grad1;
             ctx.fillRect(120, 0, 260, canvas.height);
 
-            // Правый узкий софтбокс
+            // Right fill softbox
             let grad2 = ctx.createLinearGradient(680, 0, 820, 0);
             grad2.addColorStop(0, 'rgba(255, 255, 255, 0)');
             grad2.addColorStop(0.5, 'rgba(230, 245, 255, 0.95)');
@@ -397,7 +438,7 @@
             ctx.fillStyle = grad2;
             ctx.fillRect(680, 0, 140, canvas.height);
 
-            // Upper softbox
+            // Upper ambient softbox
             let grad3 = ctx.createLinearGradient(0, 20, 0, 180);
             grad3.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
             grad3.addColorStop(1, 'rgba(255, 255, 255, 0)');
@@ -409,7 +450,7 @@
             return texture;
         }
 
-        // Процедурный генератор зернистости сатина
+        // Procedural satin grain generator
         function createGrainyMetalTexture() {
             const canvas = document.createElement('canvas');
             const size = 128;
@@ -436,7 +477,7 @@
             return texture;
         }
 
-        // Проекция 2D-координат в 3D с валидацией выхода за экран
+        // Calculate 3D points from mouse coordinate projection
         function get3DPointFromEvent(event) {
             const rect = drawingCanvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
@@ -457,30 +498,25 @@
             return point;
         }
 
-        // 3D-реконструкция сплайна с разведением витков на перекрестках
+        // Reconstruction with 3D Depth separation
         function rebuildPathWith3DDepth(points) {
             const n = points.length;
             if (n < 4) return points;
 
-            // 1. Сглаживание точек алгоритмом Лапласа
+            // 1. Smooth points with Laplace algorithm
             const smoothPasses = parseInt(document.getElementById('smoothing').value);
             const flatPoints = smoothPoints(points, smoothPasses);
             
-            // 2. Дополнительное органическое скругление Чайкиным (Chaikin's Corner Cutting)
-            const chaikinPasses = parseInt(document.getElementById('chaikin').value);
-            const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
-            const subdividedPoints = subdivideChaikin(flatPoints, chaikinPasses, chaikinRatio);
-
-            const targetPoints = subdividedPoints.map(p => p.clone());
+            const targetPoints = flatPoints.map(p => p.clone());
             const count = targetPoints.length;
 
-            // Создаем плавную базовую волну по глубине
+            // Generate spatial baseline wave
             for (let i = 0; i < count; i++) {
                 const progress = i / (count - 1);
                 targetPoints[i].z = Math.sin(progress * Math.PI * 3) * 1.0;
             }
 
-            // Сканируем перекрестки и смещаем витки на нужную высоту
+            // Loop intersection calculation and height translation offset
             const thickness = parseFloat(document.getElementById('thickness').value);
             const sepFactor = parseFloat(document.getElementById('separation').value);
             const offsetHeight = thickness * sepFactor * 2.2;
@@ -488,7 +524,7 @@
 
             for (let i = 0; i < count - 1; i++) {
                 for (let j = i + 16; j < count - 1; j++) {
-                    const intersect = checkIntersection2D(subdividedPoints[i], subdividedPoints[i + 1], subdividedPoints[j], subdividedPoints[j + 1]);
+                    const intersect = checkIntersection2D(flatPoints[i], flatPoints[i + 1], flatPoints[j], flatPoints[j + 1]);
                     if (intersect) {
                         for (let k = 0; k < count; k++) {
                             const distA = Math.abs(k - i);
@@ -504,74 +540,12 @@
                 }
             }
 
-            // Итоговое пространственное сглаживание во избежание угловатостей
             return smoothPoints(targetPoints, Math.max(2, smoothPasses));
         }
 
-        // Алгоритм субдивизии Чайкина для срезания острых углов с настраиваемым коэффициентом ratio
-        function subdivideChaikin(points, passes, ratio = 0.25) {
-            if (passes === 0 || points.length < 3) return points;
-            
-            let current = points.map(p => p.clone());
-            const qWeight0 = 1 - ratio;
-            const qWeight1 = ratio;
-
-            for (let pass = 0; pass < passes; pass++) {
-                const next = [current[0].clone()];
-                for (let i = 0; i < current.length - 1; i++) {
-                    const p0 = current[i];
-                    const p1 = current[i + 1];
-                    
-                    // Вычисляем новые точки с настраиваемым коэффициентом среза
-                    const q = new THREE.Vector3().addScaledVector(p0, qWeight0).addScaledVector(p1, qWeight1);
-                    const r = new THREE.Vector3().addScaledVector(p0, qWeight1).addScaledVector(p1, qWeight0);
-                    next.push(q, r);
-                }
-                next.push(current[current.length - 1].clone());
-                current = next;
-            }
-            return current;
-        }
-
-        // Метод каллиграфического сужения концов линии (Tapering)
-        function applyTaperToGeometry(geometry, curve, tubularSegments, radialSegments) {
-            const posAttr = geometry.attributes.position;
-            const points = curve.getPoints(tubularSegments);
-            const taperAmt = parseFloat(document.getElementById('taper').value) / 100; // 0.0 - 1.0
-
-            for (let i = 0; i < posAttr.count; i++) {
-                const radialIdx = i % (radialSegments + 1);
-                const tubularIdx = Math.floor(i / (radialSegments + 1));
-                
-                const u = tubularIdx / tubularSegments;
-                
-                // Каллиграфическая кривая сужения (сужается на краях 0 и 1)
-                const taper = 1.0 - (1.0 - Math.min(1.0, Math.sin(u * Math.PI) * 1.8)) * taperAmt;
-
-                const centerPoint = points[tubularIdx];
-                if (!centerPoint) continue;
-
-                const vx = posAttr.getX(i) - centerPoint.x;
-                const vy = posAttr.getY(i) - centerPoint.y;
-                const vz = posAttr.getZ(i) - centerPoint.z;
-
-                posAttr.setXYZ(
-                    i,
-                    centerPoint.x + vx * taper,
-                    centerPoint.y + vy * taper,
-                    centerPoint.z + vz * taper
-                );
-            }
-            posAttr.needsUpdate = true;
-            geometry.computeVertexNormals();
-        }
-
-        // Построение и деформация геометрии трубы по заданным точкам
         function generateTubeGeometry(curve, density, thickness) {
-            const radialSegments = 64;
-            const geom = new THREE.TubeGeometry(curve, density, thickness, radialSegments, false);
-            applyTaperToGeometry(geom, curve, density, radialSegments);
-            return geom;
+            const radialSegments = 128; // Increased from 64 to 128 for perfect cylinder smoothness
+            return new THREE.TubeGeometry(curve, density, thickness, radialSegments, false);
         }
 
         function setupDrawingHandlers() {
@@ -597,10 +571,6 @@
             isDrawing = true;
             currentPathPoints = [];
             activeTubeMesh = null;
-            
-            // Инициализация координат стабилизатора
-            lastMouseX = event.clientX;
-            lastMouseY = event.clientY;
 
             const firstPoint = get3DPointFromEvent(event);
             if (firstPoint) currentPathPoints.push(firstPoint);
@@ -609,29 +579,7 @@
         function draw(event) {
             if (!isDrawing || currentMode !== 'draw') return;
 
-            // Коэффициент стабилизации (EMA Filter)
-            const stabVal = parseInt(document.getElementById('stabilization').value) / 100; // 0.0 - 0.95
-            const k = 1 - stabVal; // Коэффициент жесткости следования
-
-            // Сглаживаем экранные координаты движения перед проекцией в 3D
-            const targetX = event.clientX;
-            const targetY = event.clientY;
-
-            if (lastMouseX === null || lastMouseY === null) {
-                lastMouseX = targetX;
-                lastMouseY = targetY;
-            } else {
-                lastMouseX = lastMouseX * (1 - k) + targetX * k;
-                lastMouseY = lastMouseY * (1 - k) + targetY * k;
-            }
-
-            // Создаем виртуальное событие со сглаженными экранными координатами
-            const smoothedEvent = {
-                clientX: lastMouseX,
-                clientY: lastMouseY
-            };
-
-            const nextPoint = get3DPointFromEvent(smoothedEvent);
+            const nextPoint = get3DPointFromEvent(event);
             if (!nextPoint) return;
 
             const lastPoint = currentPathPoints[currentPathPoints.length - 1];
@@ -644,26 +592,17 @@
         function updateFlatLineRealtime() {
             if (currentPathPoints.length < 2) return;
 
-            // 1. Предварительное легкое сглаживание
             const smoothPasses = Math.min(2, parseInt(document.getElementById('smoothing').value));
             const smoothedRaw = smoothPoints(currentPathPoints, smoothPasses);
             if (smoothedRaw.length < 2) return;
 
-            // 2. Срез углов Чайкиным на лету (только 1 проход для плавности интерактивного рендера)
-            const chaikinPasses = Math.min(1, parseInt(document.getElementById('chaikin').value));
-            const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
-            const preSubdivided = subdivideChaikin(smoothedRaw, chaikinPasses, chaikinRatio);
-
-            // Центрипетальный сплайн предотвращает резкие петли и заломы
-            const curve = new THREE.CatmullRomCurve3(preSubdivided, false, 'centripetal');
+            const curve = new THREE.CatmullRomCurve3(smoothedRaw, false, 'centripetal');
             const thickness = parseFloat(document.getElementById('thickness').value);
-            const baseDensity = parseInt(document.getElementById('density').value);
+            const baseDensity = 500;
 
-            // Адаптируем плотность полигонов под длину кривой
             const curveLength = curve.getLength();
             const segmentsCount = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
 
-            // Равномерно распределяем полигоны по кривой
             const spacedPoints = curve.getSpacedPoints(segmentsCount);
             const smoothCurve = new THREE.CatmullRomCurve3(spacedPoints, false, 'centripetal');
 
@@ -678,7 +617,6 @@
             }
         }
 
-        // Обновление всех существующих линий в реальном времени при изменении слайдеров
         function updateAllLineGeometries() {
             drawnLines.forEach(line => {
                 const isMorphing = activeMorphs.some(m => m.mesh === line.mesh);
@@ -689,13 +627,9 @@
                 const targetPoints = rebuildPathWith3DDepth(line.rawPoints);
                 if (targetPoints.length < 4) return;
 
-                const chaikinPasses = parseInt(document.getElementById('chaikin').value);
-                const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
-                const subdivided = subdivideChaikin(targetPoints, chaikinPasses, chaikinRatio);
-
-                const curve = new THREE.CatmullRomCurve3(subdivided, false, 'centripetal');
+                const curve = new THREE.CatmullRomCurve3(targetPoints, false, 'centripetal');
                 const thickness = parseFloat(document.getElementById('thickness').value);
-                const baseDensity = parseInt(document.getElementById('density').value);
+                const baseDensity = 500;
                 
                 const curveLength = curve.getLength();
                 const density = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
@@ -704,7 +638,6 @@
                 line.mesh.geometry = generateTubeGeometry(curve, density, thickness);
             });
 
-            // Обновляем также целевые точки для тех линий, которые все еще плавно гнутся в анимации
             activeMorphs.forEach(morph => {
                 if (morph.rawPoints) {
                     morph.endPoints = rebuildPathWith3DDepth(morph.rawPoints);
@@ -714,7 +647,6 @@
             });
         }
 
-        // Метод динамического изменения положения и прозрачности фонового референса
         function updateBgMeshTransform() {
             if (!bgMesh) return;
             const scaleVal = parseFloat(document.getElementById('bg-scale').value);
@@ -723,7 +655,7 @@
             const opacityVal = parseFloat(document.getElementById('bg-opacity').value) / 100;
             
             bgMesh.scale.set(scaleVal, scaleVal, 1.0);
-            bgMesh.position.set(offsetX, offsetY, -4.5); // Зафиксирован надежно за областью рисования
+            bgMesh.position.set(offsetX, offsetY, -4.5);
             bgMesh.material.opacity = opacityVal;
         }
 
@@ -735,20 +667,19 @@
             lastMouseY = null;
 
             if (currentPathPoints.length >= 4 && activeTubeMesh) {
-                showToast("⚡ Ультра-разглаживание и перенос в 3D...");
+                showToast("⚡ Smooth 3D Move...");
 
                 const smoothPasses = parseInt(document.getElementById('smoothing').value);
                 const flatPoints = smoothPoints(currentPathPoints, smoothPasses);
                 const targetPoints = rebuildPathWith3DDepth(currentPathPoints);
 
                 if (targetPoints.length >= 4) {
-                    // Сохраняем и исходные сырые точки, и сам меш для последующих модификаций
                     drawnLines.push({
                         rawPoints: [...currentPathPoints],
                         mesh: activeTubeMesh
                     });
 
-                    startMorphTransition(activeTubeMesh, flatPoints, targetPoints, [...currentPathPoints]);
+                    startMorphTransition(activeTubeMesh, flatPoints, targetPoints);
                     currentLineMeshes.push(activeTubeMesh);
                     activeTubeMesh = null;
                 } else {
@@ -764,12 +695,11 @@
             currentPathPoints = [];
         }
 
-        function startMorphTransition(mesh, startPts, endPts, rawPoints) {
+        function startMorphTransition(mesh, startPts, endPts) {
             activeMorphs.push({
                 mesh: mesh,
                 startPoints: startPts,
                 endPoints: endPts,
-                rawPoints: rawPoints, // сохраняем исходные координаты
                 progress: 0,
                 duration: 1.0,
                 easing: (t) => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
@@ -780,29 +710,28 @@
             currentMode = mode;
             
             if (mode === 'draw') {
-                document.getElementById('mode-draw').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
-                document.getElementById('mode-inspect').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
+                document.getElementById('mode-draw').className = "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
+                document.getElementById('mode-inspect').className = "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
                 drawingCanvas.style.cursor = 'crosshair';
                 controls.enabled = false;
-                viewIndicator = document.getElementById('view-mode-indicator');
-                viewIndicator.innerText = "✏️ Нарисуйте линию на экране";
+                const viewIndicator = document.getElementById('view-mode-indicator');
+                viewIndicator.innerText = "Draw a line on the screen";
                 smoothResetCamera();
             } else {
-                document.getElementById('mode-draw').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
-                document.getElementById('mode-inspect').className = "flex-1 text-center py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
+                document.getElementById('mode-draw').className = "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md text-stone-400 hover:text-orange-400 transition-all";
+                document.getElementById('mode-inspect').className = "flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-md transition-all bg-stone-100 text-stone-950";
                 drawingCanvas.style.cursor = 'grab';
-                controls.enabled = true; // Активируем управление камерой
-                viewIndicator = document.getElementById('view-mode-indicator');
-                viewIndicator.innerText = "🔍 Осмотр 3D: Вращайте фигуру мышью";
+                controls.enabled = true;
+                const viewIndicator = document.getElementById('view-mode-indicator');
+                viewIndicator.innerText = "3D Inspect: Rotate and zoom using mouse";
             }
         }
 
-        // Обновление всех текстовых меток у ползунков
         function updateUIOutputLabels() {
             const sliders = [
-                'thickness', 'roughness', 'grain', 'smoothing', 'separation', 
-                'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper',
-                'bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'
+                'thickness', 'roughness', 'smoothing', 'separation', 
+                'bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y',
+                'keyIntensity', 'fillIntensity'
             ];
             sliders.forEach(id => {
                 const el = document.getElementById(id);
@@ -810,17 +739,9 @@
                 if (!el || !val) return;
 
                 let suffix = '';
-                if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper' || id === 'bg-opacity') suffix = '%';
+                if (id === 'bg-opacity') suffix = '%';
                 if (id === 'bg-scale') suffix = 'x';
-                if (id === 'chaikin') {
-                    const v = el.value;
-                    let passWord = ' проходов';
-                    if (v === '1') passWord = ' проход';
-                    else if (v === '2' || v === '3') passWord = ' прохода';
-                    val.innerText = v + passWord;
-                } else {
-                    val.innerText = el.value + suffix;
-                }
+                val.innerText = el.value + suffix;
             });
         }
 
@@ -829,8 +750,7 @@
             document.getElementById('mode-inspect').addEventListener('click', () => setMode('inspect'));
 
             const inputs = [
-                'thickness', 'roughness', 'grain', 'smoothing', 'separation', 
-                'density', 'stabilization', 'chaikin', 'chaikinRatio', 'taper',
+                'thickness', 'roughness', 'smoothing', 'separation', 
                 'bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'
             ];
             inputs.forEach(id => {
@@ -838,31 +758,36 @@
                 const val = document.getElementById(`val-${id}`);
                 el.addEventListener('input', (e) => {
                     let suffix = '';
-                    if (id === 'stabilization' || id === 'chaikinRatio' || id === 'taper' || id === 'bg-opacity') suffix = '%';
+                    if (id === 'bg-opacity') suffix = '%';
                     if (id === 'bg-scale') suffix = 'x';
-                    if (id === 'chaikin') {
-                        const passWord = e.target.value === '1' ? 'проход' : 'прохода';
-                        if (e.target.value === '0') suffix = ' проходов';
-                        else suffix = ` ${passWord}`;
-                    }
                     val.innerText = e.target.value + suffix;
                     
                     if (id === 'roughness') material.roughness = parseFloat(e.target.value);
-                    if (id === 'grain') material.bumpScale = parseFloat(e.target.value);
 
-                    // Если изменен геометрический ползунок — мгновенно перестраиваем все существующие линии!
-                    if (['thickness', 'smoothing', 'separation', 'density', 'chaikin', 'chaikinRatio', 'taper'].includes(id)) {
+                    if (['thickness', 'smoothing', 'separation'].includes(id)) {
                         updateAllLineGeometries();
                     }
 
-                    // Если изменены параметры фоновой картинки
                     if (['bg-opacity', 'bg-scale', 'bg-offset-x', 'bg-offset-y'].includes(id)) {
                         updateBgMeshTransform();
                     }
                 });
             });
 
-            // Загрузка фонового референса
+            // Lighting control binders
+            const lightingInputs = ['keyIntensity', 'fillIntensity'];
+            lightingInputs.forEach(id => {
+                const el = document.getElementById(id);
+                const val = document.getElementById(`val-${id}`);
+                el.addEventListener('input', (e) => {
+                    const v = parseFloat(e.target.value);
+                    val.innerText = e.target.value;
+                    if (id === 'keyIntensity') keyLight.intensity = v;
+                    if (id === 'fillIntensity') fillLight.intensity = v;
+                });
+            });
+
+            // Background upload binders
             const bgFileInput = document.getElementById('bg-file-input');
             const uploadBgBtn = document.getElementById('upload-bg-btn');
             const removeBgBtn = document.getElementById('remove-bg-btn');
@@ -877,9 +802,8 @@
                     const loader = new THREE.TextureLoader();
                     loader.load(event.target.result, (texture) => {
                         bgTexture = texture;
-                        // Настраиваем пропорции
                         const aspect = texture.image.width / texture.image.height;
-                        const baseHeight = 15; // Дефолтная высота в 3D единицах
+                        const baseHeight = 15;
                         const baseWidth = baseHeight * aspect;
                         
                         const geometry = new THREE.PlaneGeometry(baseWidth, baseHeight);
@@ -887,7 +811,7 @@
                             map: texture,
                             transparent: true,
                             opacity: parseFloat(document.getElementById('bg-opacity').value) / 100,
-                            depthWrite: false, // Чтобы не конфликтовать со шлангами, уходящими назад
+                            depthWrite: false,
                             depthTest: true
                         });
                         
@@ -901,18 +825,16 @@
                         bgMesh.position.set(0, 0, -4.5);
                         scene.add(bgMesh);
                         
-                        // Показываем панель управления фоном
                         removeBgBtn.classList.remove('hidden');
                         bgControls.classList.remove('hidden');
                         
                         updateBgMeshTransform();
-                        showToast("🖼️ Референс успешно загружен");
+                        showToast("🖼️ Reference uploaded successfully");
                     });
                 };
                 reader.readAsDataURL(file);
             });
 
-            // Удаление фонового референса
             removeBgBtn.addEventListener('click', () => {
                 if (bgMesh) {
                     scene.remove(bgMesh);
@@ -924,7 +846,7 @@
                 bgFileInput.value = '';
                 removeBgBtn.classList.add('hidden');
                 bgControls.classList.add('hidden');
-                showToast("🗑️ Референс удален с фона");
+                showToast("🗑️ Reference removed");
             });
 
             const colorPicker = document.getElementById('color');
@@ -947,11 +869,11 @@
             bgToggle.addEventListener('change', updateBg);
             updateBg();
 
-            // Кнопка Очистки Сцены
+            // Clear Scene Binder
             document.getElementById('clear-btn').addEventListener('click', () => {
                 currentLineMeshes.forEach(m => { scene.remove(m); m.geometry.dispose(); });
                 currentLineMeshes = [];
-                drawnLines = []; // Также очищаем массив хранения сырых траекторий
+                drawnLines = [];
                 activeMorphs = [];
                 isDrawing = false;
                 currentPathPoints = [];
@@ -960,37 +882,36 @@
                     activeTubeMesh.geometry.dispose();
                     activeTubeMesh = null;
                 }
-                showToast("🗑️ Сцена очищена");
+                showToast("🗑️ Scene cleared");
             });
 
-            // Кнопка Сброса настроек до дефолтных
+            // Reset Settings Binder
             document.getElementById('reset-settings-btn').addEventListener('click', () => {
-                document.getElementById('stabilization').value = 0; // Изменено на 0 по умолчанию
-                document.getElementById('chaikin').value = 0;
-                document.getElementById('chaikinRatio').value = 45;
-                document.getElementById('taper').value = 0;
-                document.getElementById('separation').value = 6.0;
+                document.getElementById('separation').value = 10.0;
                 document.getElementById('smoothing').value = 50; 
-                document.getElementById('density').value = 500;
-                document.getElementById('thickness').value = 0.2; // Дефолт 0.2
+                document.getElementById('thickness').value = 0.2;
                 
-                // Сброс параметров картинки на дефолты
                 document.getElementById('bg-opacity').value = 50;
                 document.getElementById('bg-scale').value = 1.0;
                 document.getElementById('bg-offset-x').value = 0;
                 document.getElementById('bg-offset-y').value = 0;
                 
-                // Перевод на дефолтный сатин
+                document.getElementById('keyIntensity').value = 2.0;
+                document.getElementById('val-keyIntensity').innerText = "2.0";
+                keyLight.intensity = 2.0;
+
+                document.getElementById('fillIntensity').value = 1.2;
+                document.getElementById('val-fillIntensity').innerText = "1.2";
+                fillLight.intensity = 1.2;
+
                 document.getElementById('roughness').value = 0.28;
-                document.getElementById('grain').value = 0.025;
                 document.getElementById('color').value = "#e6e6e6";
                 document.getElementById('color-hex').innerText = "#e6e6e6";
                 
                 material.color.set("#e6e6e6");
                 material.roughness = 0.28;
-                material.bumpScale = 0.025;
+                material.bumpScale = 0.004; // Smoother bump map default
                 
-                // Стилизация активной кнопки пресета в оранжевом стиле
                 document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
                 document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
 
@@ -998,39 +919,53 @@
                 updateUIOutputLabels();
                 updateAllLineGeometries();
                 updateBgMeshTransform();
-                showToast("🔄 Настройки сброшены до дефолтов");
+                showToast("🔄 Settings reset to defaults");
             });
 
-            // Скачать файл PNG (с автоматическим скрытием референса)
+            // Render High Quality PNG (Upgraded to Ultra Quality Supersampling 4x)
             document.getElementById('export-png-btn').addEventListener('click', () => {
-                if (currentLineMeshes.length === 0) { showToast("⚠️ Сцена пуста!"); return; }
+                if (currentLineMeshes.length === 0) { showToast("⚠️ Scene is empty!"); return; }
                 
-                // Прячем референс перед снимком
                 const wasBgVisible = bgMesh ? bgMesh.visible : false;
                 if (bgMesh) bgMesh.visible = false;
+
+                const originalWidth = renderer.domElement.width;
+                const originalHeight = renderer.domElement.height;
+                const originalPixelRatio = renderer.getPixelRatio();
+                
+                // Scale factor 4.0 provides super-high resolution export with outstanding edge crispness
+                const scaleFactor = 4.0;
+                
+                renderer.setPixelRatio(1.0);
+                renderer.setSize(originalWidth * scaleFactor / originalPixelRatio, originalHeight * scaleFactor / originalPixelRatio, false);
+                
+                camera.aspect = originalWidth / originalHeight;
+                camera.updateProjectionMatrix();
 
                 renderer.render(scene, camera);
                 const data = renderer.domElement.toDataURL('image/png');
                 
-                // Возвращаем видимость референса обратно
+                renderer.setPixelRatio(originalPixelRatio);
+                renderer.setSize(originalWidth / originalPixelRatio, originalHeight / originalPixelRatio, true);
+                camera.aspect = originalWidth / originalHeight;
+                camera.updateProjectionMatrix();
+
                 if (bgMesh) bgMesh.visible = wasBgVisible;
                 renderer.render(scene, camera);
 
                 const link = document.createElement('a');
-                link.download = 'metallic-render.png';
+                link.download = 'metallic-render-4x.png';
                 link.href = data;
                 link.click();
-                showToast("🖼 PNG успешно сохранен");
+                showToast("🖼️ Ultra-HD PNG (4x) saved successfully!");
             });
 
-            // Пресеты
+            // Material presets binders
             document.getElementById('preset-chrome').addEventListener('click', () => {
                 document.getElementById('roughness').value = 0.04;
                 document.getElementById('val-roughness').innerText = "0.04";
                 material.roughness = 0.04;
-                document.getElementById('grain').value = 0.002;
-                document.getElementById('val-grain').innerText = "0.002";
-                material.bumpScale = 0.002;
+                material.bumpScale = 0.001; // Buttery polished mirror surface
 
                 document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
                 document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
@@ -1040,9 +975,7 @@
                 document.getElementById('roughness').value = 0.28;
                 document.getElementById('val-roughness').innerText = "0.28";
                 material.roughness = 0.28;
-                document.getElementById('grain').value = 0.025;
-                document.getElementById('val-grain').innerText = "0.025";
-                material.bumpScale = 0.025;
+                material.bumpScale = 0.005; // Smooth brushed satin surface
 
                 document.getElementById('preset-satin').className = "py-1.5 text-[11px] font-semibold bg-orange-950/60 text-orange-400 rounded border border-orange-900/60 hover:bg-orange-900/40 transition-all shadow-sm shadow-orange-500/10";
                 document.getElementById('preset-chrome').className = "py-1.5 text-[11px] font-semibold bg-stone-800 rounded border border-stone-700 hover:bg-stone-700 transition-all text-stone-300";
@@ -1121,13 +1054,9 @@
                     cur.push(new THREE.Vector3().lerpVectors(m.startPoints[k], m.endPoints[k], eased));
                 }
 
-                const chaikinPasses = parseInt(document.getElementById('chaikin').value);
-                const chaikinRatio = parseInt(document.getElementById('chaikinRatio').value) / 100;
-                const subdivided = subdivideChaikin(cur, chaikinPasses, chaikinRatio);
-
-                const curve = new THREE.CatmullRomCurve3(subdivided, false, 'centripetal');
+                const curve = new THREE.CatmullRomCurve3(cur, false, 'centripetal');
                 const thickness = parseFloat(document.getElementById('thickness').value);
-                const baseDensity = parseInt(document.getElementById('density').value);
+                const baseDensity = 500;
                 
                 const curveLength = curve.getLength();
                 const density = Math.max(120, Math.floor(curveLength * baseDensity * 0.15));
@@ -1140,7 +1069,6 @@
 
             if (controls.enabled) {
                 controls.update();
-                // Меняем состояние курсора при активном перетаскивании сцены
                 if (controls.state === -1) {
                     drawingCanvas.style.cursor = 'grab';
                 } else {
